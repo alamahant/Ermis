@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<component type="desktop-application">
+
+  <id>io.github.alamahant.Ermis</id>
+  <name>Ermis</name>
+  <summary>Image and audio steganography tool for covert communication</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+
+  <project_license>GPL-3.0-or-later</project_license>
+  <url type="vcs-browser">https://github.com/alamahant/Ermis</url>
+  <description>
+    <p>
+      Ermis is a cross-platform steganography application that allows you to hide and extract 
+      secret data within digital media files. Named after the Greek god of messages and 
+      communication, Ermis enables covert communication through innocent-looking image and 
+      audio files.
+    </p>
+
+    <p>
+      Image Steganography:
+    </p>
+    <ul>
+      <li>Hide data in PNG, JPG, and BMP images using LSB (Least Significant Bit) techniques</li>
+      <li>Live preview of original and modified images with side-by-side comparison</li>
+      <li>PRT Artistic Mode: Specialized visual steganography for camera-scannable codes</li>
+      <li>Real-time capacity indicator showing available hiding space</li>
+    </ul>
+
+    <p>
+      Audio Steganography:
+    </p>
+    <ul>
+      <li>Support for WAV, MP3, FLAC, and OGG audio files</li>
+      <li>Automatic conversion of non-WAV files using FFmpeg</li>
+      <li>Built-in audio player with play/pause/stop and volume controls</li>
+      <li>Metadata extraction for accurate capacity calculation</li>
+    </ul>
+
+    <p>
+      Data Handling:
+    </p>
+    <ul>
+      <li>Text input for hiding plain messages with UTF-8 encoding</li>
+      <li>File input for hiding any file type with filename preservation</li>
+      <li>Smart marker system (0x00 for text, length byte for files)</li>
+      <li>Automatic detection of data type during extraction</li>
+    </ul>
+
+    <p>
+      Security Features:
+    </p>
+    <ul>
+      <li>Optional AES encryption with passphrase protection</li>
+      <li>ENCR marker for automatic encrypted data detection</li>
+      <li>Passphrase memory during current session</li>
+      <li>Secure extraction with decryption prompts</li>
+    </ul>
+
+    <p>
+      User Interface:
+    </p>
+    <ul>
+      <li>Dual-tab interface for hiding and extracting data</li>
+      <li>Drag & drop support for both images and audio files</li>
+      <li>Clipboard integration for one-click text copying</li>
+      <li>Image preview highlighting with file path display</li>
+      <li>Camera integration for scanning PRT artistic codes</li>
+    </ul>
+  </description>
+
+  <url type="homepage">https://github.com/alamahant/Ermis</url>
+  <url type="bugtracker">https://github.com/alamahant/Ermis/issues</url>
+
+  <screenshots>
+    <screenshot type="default">
+      <caption>Main interface with image steganography mode</caption>
+      <image>https://raw.githubusercontent.com/alamahant/Ermis/master/screenshots/main.png</image>
+    </screenshot>
+  </screenshots>
+
+  <releases>
+    <release version="1.0.0" date="2026-03-15">
+      <description>
+        <p>Initial release of Ermis:</p>
+        <ul>
+          <li>Image steganography for PNG, JPG, BMP formats</li>
+          <li>Audio steganography with FFmpeg conversion</li>
+          <li>Text and file input with filename preservation</li>
+          <li>AES encryption with passphrase protection</li>
+          <li>PRT Artistic Mode with camera scanning</li>
+          <li>Drag & drop support for all file types</li>
+          <li>Live capacity indicator and preview panels</li>
+          <li>Built-in audio player with playback controls</li>
+          <li>Cross-platform support (Linux, Windows, macOS)</li>
+        </ul>
+      </description>
+    </release>
+  </releases>
+
+  <developer_name>Alamahant</developer_name>
+
+  <categories>
+    <category>Graphics</category>
+    <category>Utility</category>
+    <category>Security</category>
+  </categories>
+
+  <keywords>
+    <keyword>steganography</keyword>
+    <keyword>hide data</keyword>
+    <keyword>encryption</keyword>
+    <keyword>image</keyword>
+    <keyword>audio</keyword>
+    <keyword>privacy</keyword>
+    <keyword>secret</keyword>
+    <keyword>lsb</keyword>
+    <keyword>embed</keyword>
+    <keyword>extract</keyword>
+    <keyword>covert</keyword>
+    <keyword>communication</keyword>
+  </keywords>
+
+  <content_rating type="oars-1.1" />
+
+  <launchable type="desktop-id">io.github.alamahant.Ermis.desktop</launchable>
+
+  <provides>
+    <binary>Ermis</binary>
+  </provides>
+
+  <requires>
+    <display_length compare="ge">768</display_length>
+  </requires>
+
+  <recommends>
+    <control>keyboard</control>
+    <control>pointing</control>
+  </recommends>
+
+</component>

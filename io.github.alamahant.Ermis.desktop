@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Ermis
+GenericName=Image and Audio Steganography Tool
+Comment=Hide and extract secret data in images and audio files using steganography
+Icon=io.github.alamahant.Ermis
+Exec=Ermis
+Terminal=false
+Categories=Graphics;Utility;Security;
+Keywords=steganography;hide;encrypt;image;audio;privacy;secret;lsb;embed;extract;
+StartupNotify=true
+X-Flatpak=io.github.alamahant.Ermis
