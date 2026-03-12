@@ -214,6 +214,9 @@ private:
     Qt::AspectRatioMode m_originalAspectMode = Qt::KeepAspectRatio;
     Qt::AspectRatioMode m_modifiedAspectMode = Qt::KeepAspectRatio;
     Qt::AspectRatioMode m_stegoAspectMode = Qt::KeepAspectRatio;
+    void showSandboxWarning();
+    void showStegoFolderWarning();
+
 };
 
 #endif // MAINWINDOW_H

@@ -32,6 +32,7 @@
 #include<QSplitter>
 #include"helpmenudialog.h"
 #include"donationdialog.h"
+#include<QSettings>
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -379,6 +380,8 @@ void MainWindow::createMenus()
         // Carrier image selection
         //connect(openImageButton, &QPushButton::clicked, this, &MainWindow::openCarrierImage);
         connect(openImageButton, &QPushButton::clicked, [this]() {
+            showSandboxWarning();
+
             if (isAudioMode) {
                 openAudioCarrier();
             } else {
@@ -538,6 +541,8 @@ void MainWindow::createMenus()
         // Extract tab connections
 
         connect(openStegoImageButton, &QPushButton::clicked, [this]() {
+
+            showStegoFolderWarning();
 
             // === AUDIO MODE CHECK FIRST ===
             if (isAudioMode) {
@@ -740,7 +745,7 @@ void MainWindow::createMenus()
 
     void MainWindow::openCarrierImage() {
 
-        QString initialPath = Constants::picturesPath;
+        QString initialPath = Constants::imagesPath;
 
         if (!QDir(initialPath).exists()) {
             initialPath = Constants::imagesPath;
@@ -1576,7 +1581,7 @@ void MainWindow::onCameraButtonClicked()
 
     void MainWindow::openAudioCarrier()
     {
-        QString initialAudioPath = Constants::musicPath;
+        QString initialAudioPath = Constants::imagesPath;
 
         if (!QDir(initialAudioPath).exists()) {
             initialAudioPath = Constants::appDirPath;
@@ -2536,4 +2541,76 @@ void MainWindow::onCameraButtonClicked()
         });
 
         return menu;
+    }
+
+    void MainWindow::showSandboxWarning() {
+        QSettings settings;
+
+        // Check if the user previously chose "Do not show again"
+        if (settings.value("sandboxWarningDoNotShow", false).toBool())
+            return;
+
+        // Create message box
+        QMessageBox msg;
+        msg.setWindowTitle("Sandboxed Filesystem Notice");
+        msg.setText(
+            "Due to Flathub permissions, Music and Pictures folders are sandboxed.\n"
+            "You will need to manually copy the needed files into:\n\n" +
+            Constants::imagesPath
+        );
+        msg.setIcon(QMessageBox::Information);
+
+        // Only OK button
+        msg.setStandardButtons(QMessageBox::Ok);
+
+        // Add Do Not Show Again checkbox
+        QCheckBox* checkBox = new QCheckBox("Do not show again");
+        msg.setCheckBox(checkBox);
+
+        // Execute
+        msg.exec();
+
+        // Save preference if checkbox is checked
+        if (checkBox->isChecked()) {
+            settings.setValue("sandboxWarningDoNotShow", true);
+        }
+
+        // File dialog should be opened by the caller after this function returns
+    }
+
+
+    void MainWindow::showStegoFolderWarning() {
+        QSettings settings;
+
+        // Check if the user previously chose "Do not show again"
+        if (settings.value("stegoFolderWarningDoNotShow", false).toBool())
+            return;
+
+        // Create message box
+        QMessageBox msg;
+        msg.setWindowTitle("Save Stego Images Notice");
+        msg.setText(
+            "Due to Flathub sandboxing, Ermis cannot open files outside the sandbox.\n"
+            "When you receive Ermis steganography files from others,\n"
+            "Please move them into this folder:\n\n" +
+            Constants::fusedImagesPath
+        );
+        msg.setIcon(QMessageBox::Information);
+
+        // Only OK button
+        msg.setStandardButtons(QMessageBox::Ok);
+
+        // Add Do Not Show Again checkbox
+        QCheckBox* checkBox = new QCheckBox("Do not show again");
+        msg.setCheckBox(checkBox);
+
+        // Execute
+        msg.exec();
+
+        // Save preference if checkbox is checked
+        if (checkBox->isChecked()) {
+            settings.setValue("stegoFolderWarningDoNotShow", true);
+        }
+
+        // The actual save/open dialog should be called by the caller after this returns
     }
