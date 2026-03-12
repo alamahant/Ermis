@@ -2,7 +2,9 @@
 
 namespace Constants {
 
-const QString appDirPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/Ermis";
+//const QString appDirPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/Ermis";
+const QString appDirPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+
 const QString imagesPath = appDirPath + "/carriers";
 const QString fusedImagesPath = appDirPath + "/fused";
 const QString extractedImagesPath = appDirPath + "/extracted";
