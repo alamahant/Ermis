@@ -1,6 +1,6 @@
 # Ermis - Steganography Tool
 
-![Ermis Logo](resources/jasmine.png)
+![Ermis Logo](io.github.alamahant.Ermis.png)
 
 Ermis is a cross-platform steganography application that allows you to hide and extract secret data within digital media files. Named after the Greek god of messages and communication, Ermis enables covert communication through innocent-looking image and audio files.
 
@@ -26,11 +26,6 @@ Ermis is a cross-platform steganography application that allows you to hide and 
 - **AES Encryption**: Optional encryption with passphrase protection
 - **Passphrase Memory**: Remember passphrases during the current session
 - **ENCR Marker**: Automatically detects and handles encrypted data
-
-### 🎨 PRT Mode (Artistic Steganography)
-- Specialized mode for creating visual steganographic codes
-- Camera scanning support for PRT code detection
-- Ideal for artistic and creative steganographic applications
 
 ### 📋 User Interface
 - **Dual-Tab Interface**: Separate tabs for hiding and extracting data
