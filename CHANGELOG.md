@@ -1,6 +1,6 @@
 # Changelog
 
-## [v1.0.0] - 2026-03-15
+## [v1.0.0] - 2026-03-12
 
 ### 🎉 Initial Release
 
@@ -45,4 +45,3 @@ Ermis is a cross-platform steganography tool that allows you to hide and extract
 
 ---
 
-**Full commit history**: [https://github.com/alamahant/Ermis/commits/v1.0.0](https://github.com/alamahant/Ermis/commits/v1.0.0)

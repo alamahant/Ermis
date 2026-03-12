@@ -4,7 +4,7 @@
 
   <id>io.github.alamahant.Ermis</id>
   <name>Ermis</name>
-  <summary>Image and audio steganography tool for covert communication</summary>
+  <summary>Hide content in images or audio</summary>
   <metadata_license>CC0-1.0</metadata_license>
 
   <project_license>GPL-3.0-or-later</project_license>
@@ -62,7 +62,7 @@
     </p>
     <ul>
       <li>Dual-tab interface for hiding and extracting data</li>
-      <li>Drag & drop support for both images and audio files</li>
+      <li>Drag and drop support for both images and audio files</li>
       <li>Clipboard integration for one-click text copying</li>
       <li>Image preview highlighting with file path display</li>
       <li>Camera integration for scanning PRT artistic codes</li>
@@ -71,16 +71,16 @@
 
   <url type="homepage">https://github.com/alamahant/Ermis</url>
   <url type="bugtracker">https://github.com/alamahant/Ermis/issues</url>
-
+<!--
   <screenshots>
     <screenshot type="default">
       <caption>Main interface with image steganography mode</caption>
       <image>https://raw.githubusercontent.com/alamahant/Ermis/master/screenshots/main.png</image>
     </screenshot>
   </screenshots>
-
+-->
   <releases>
-    <release version="1.0.0" date="2026-03-15">
+    <release version="1.0.0" date="2026-03-12">
       <description>
         <p>Initial release of Ermis:</p>
         <ul>
@@ -89,7 +89,7 @@
           <li>Text and file input with filename preservation</li>
           <li>AES encryption with passphrase protection</li>
           <li>PRT Artistic Mode with camera scanning</li>
-          <li>Drag & drop support for all file types</li>
+          <li>Drag and drop support for all file types</li>
           <li>Live capacity indicator and preview panels</li>
           <li>Built-in audio player with playback controls</li>
           <li>Cross-platform support (Linux, Windows, macOS)</li>
