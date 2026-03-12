@@ -11,13 +11,12 @@ finish-args:
   - --socket=pulseaudio
   - --filesystem=xdg-music:ro
   - --filesystem=xdg-pictures:ro
-  - --filesystem=xdg-download:ro
   - --filesystem=xdg-documents/Ermis:create
 modules:
   - name: Ermis
     buildsystem: cmake-ninja
     config-opts:
-      #- -DFLATPAK_BUILD=ON
+      - -DFLATPAK_BUILD=ON
       - -DCMAKE_BUILD_TYPE=Release
     sources:
       - type: dir

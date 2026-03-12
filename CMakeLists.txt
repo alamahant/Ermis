@@ -9,6 +9,13 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+#flatpak
+option(FLATPAK_BUILD "Build for Flathub/Flatpak" OFF)
+if(FLATPAK_BUILD)
+    add_compile_definitions(FLATPAK_BUILD)
+endif()
+
+
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Qt6Concurrent Qt6Multimedia)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Concurrent Multimedia)
 
@@ -66,8 +73,7 @@ endif()
 #target_link_libraries(Ermis PRIVATE Qt${QT_VERSION_MAJOR}::Widgets qca-qt6 OpenSSL::SSL OpenSSL::Crypto)
 target_link_libraries(Ermis PRIVATE Qt${QT_VERSION_MAJOR}::Widgets OpenSSL::SSL OpenSSL::Crypto Qt6::Concurrent Qt6::Multimedia)
 target_link_libraries(Ermis PRIVATE Qt6::Core)
-target_link_libraries(Ermis PRIVATE Qt6::Core)
-target_link_libraries(Ermis PRIVATE Qt6::Core)
+
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
@@ -89,6 +95,38 @@ install(TARGETS Ermis
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
+
+if(FLATPAK_BUILD)
+    # Install desktop file
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/io.github.alamahant.Ermis.desktop"
+            DESTINATION "share/applications")
+
+    # Install metainfo file
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/io.github.alamahant.Ermis.metainfo.xml"
+            DESTINATION "share/metainfo")
+
+    # Install app icon from root directory
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/io.github.alamahant.Ermis.png"
+            DESTINATION "share/icons/hicolor/512x512/apps"
+            RENAME "io.github.alamahant.Ermis.png")
+
+    # Install icons from favicon directory
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/resources/favicon/android-chrome-192x192.png"
+            DESTINATION "share/icons/hicolor/192x192/apps"
+            RENAME "io.github.alamahant.Ermis.png")
+
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/resources/favicon/favicon-16x16.png"
+            DESTINATION "share/icons/hicolor/16x16/apps"
+            RENAME "io.github.alamahant.Ermis.png")
+
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/resources/favicon/favicon-32x32.png"
+            DESTINATION "share/icons/hicolor/32x32/apps"
+            RENAME "io.github.alamahant.Ermis.png")
+
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/resources/favicon/apple-touch-icon.png"
+            DESTINATION "share/icons/hicolor/180x180/apps"
+            RENAME "io.github.alamahant.Ermis.png")
+endif()
 
 if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(Ermis)

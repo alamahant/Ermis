@@ -1,0 +1,40 @@
+===============================================================================
+ERMIS - Steganography Tool
+===============================================================================
+
+Icons
+------------------------------------------------------------------------------
+Feather Icons (https://feathericons.com)
+Copyright (c) 2013-2024 Cole Bemis
+MIT License
+https://github.com/feathericons/feather/blob/master/LICENSE
+
+The icon set used throughout the Ermis interface (activity.svg, music.svg, 
+play.svg, pause.svg, etc.) is provided by Feather Icons, a collection of 
+beautifully crafted open-source icons.
+
+Application Icon / Favicon
+------------------------------------------------------------------------------
+Favicon.io (https://favicon.io)
+Copyright (c) 2024 Favicon.io
+MIT License
+https://favicon.io/license/
+
+The application icon and favicon files in resources/favicon/ were generated 
+using Favicon.io's favicon generator tool.
+
+Audio Player Icons (White Variants)
+------------------------------------------------------------------------------
+Feather Icons - White Variant
+Modified versions of Feather Icons for the audio player toolbar 
+(resources/icons-white/ directory). Original icons copyright Feather Icons.
+
+===============================================================================
+Additional Credits
+------------------------------------------------------------------------------
+Qt Framework (https://www.qt.io) - Cross-platform GUI framework
+FFmpeg (https://ffmpeg.org) - Audio conversion and processing
+Flathub (https://flathub.org) - Flatpak distribution platform
+
+===============================================================================
+For full license details, see LICENSE file in the root directory.

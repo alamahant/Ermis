@@ -9,14 +9,19 @@ finish-args:
   - --socket=wayland
   - --device=dri
   - --share=network
+  - --socket=pulseaudio
+  - --filesystem=xdg-music:ro
+  - --filesystem=xdg-pictures:ro
+  - --filesystem=xdg-documents/Ermis:create
 modules:
   - name: Ermis
     buildsystem: cmake-ninja
     config-opts:
-      - -DFLATHUB_BUILD=ON
+      - -DFLATPAK_BUILD=ON
       - -DCMAKE_BUILD_TYPE=Release
     sources:
-      - type: dir
-        path: .
+      - type: git
+        url: https://github.com/alamahant/Ermis.git
+        tag: v1.0.0
 
       

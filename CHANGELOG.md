@@ -1,70 +1,48 @@
 # Changelog
 
-## [2025-12-28] - Release v1.4.0
+## [v1.0.0] - 2026-03-15
 
-### Added
-- **Full-featured video player**: Play video files with a beautiful media player and dedicated video playlist
+### 🎉 Initial Release
 
-### Changed
-- Various code improvements and UI polish
+Ermis is a cross-platform steganography tool that allows you to hide and extract secret data within digital media files.
 
----
+#### 🖼️ Image Steganography
+- Hide data in PNG, JPG, and BMP images using LSB (Least Significant Bit) techniques
+- Live preview of original and modified images with side-by-side comparison
+- Real-time capacity indicator showing available hiding space
 
-## [2025-12-21] - Release v1.3.0
+#### 🎵 Audio Steganography
+- Support for WAV, MP3, FLAC, and OGG audio files
+- Automatic conversion of non-WAV files using FFmpeg
+- Built-in audio player with play/pause/stop and volume controls
+- Metadata extraction for accurate capacity calculation
 
-### Added
-- **Multi-Stage Session Manager**: Create programmable sequences of audio tones with timed stages
-- **CUE Sheet Import**: Load and navigate structured audio tracks from CUE files
-- **Digital Seek Widget**: Jump to precise time positions within tracks
-- **Drag-and-Drop Import**: Import audio files by dragging directly into the application
+#### 📝 Data Handling
+- Text input for hiding plain messages with UTF-8 encoding
+- File input for hiding any file type with filename preservation
+- Smart marker system (0x00 for text, length byte for files)
+- Automatic detection of data type during extraction
 
-### Notes
-Transforms the application from a simple tone generator into a complete audio toolkit with:
-- Programmable therapy and meditation sessions
-- Structured navigation of long audio files
-- Enhanced file management and workflow
+#### 🔒 Security Features
+- Optional AES encryption with passphrase protection
+- ENCR marker for automatic encrypted data detection
+- Passphrase memory during current session
+- Secure extraction with decryption prompts
 
----
+#### 🎨 User Interface
+- Dual-tab interface for hiding and extracting data
+- Drag & drop support for both images and audio files
+- Clipboard integration for one-click text copying
+- Image preview highlighting with file path display
+- Smart directory fallbacks (Pictures → Images, Music → AppDir)
 
-
-## [2025-12-16] - Release v1.2.0
-
-### Changed
-- **BinauralPlayer goes fully dynamic**: switched tone generation to a real-time dynamic engine.
-- Removed buffered tone generation entirely.
-- No delays or gaps when increasing or decreasing frequencies — changes are applied instantly.
-
-### Notes
-This is a major milestone that opens the road to new and exciting features, such as:
-- Programmable multi-stage sessions with smooth transitions between stages
-- Per-stage frequency changes
-- Support for binaural beats and isochronic pulses within complex session flows
-
----
-
-
-## [2025-12-13] - Release v1.1.0
-
-### Added
-- Nature Ambient Sounds Toolbar - ambient sound mixer with 5 independent players
-- Bottom-right info button for track metadata display
-
-### Changed
-
-- Changed the default screenshot to reflect the current version of the application including the Nature Ambient Sound Toolbar
-- Various code improvements and UI polish
+#### 🔧 Technical Highlights
+- Modular engine design with separate image and audio steganography
+- FFmpeg integration for professional-grade audio conversion
+- Multi-threaded file operations with progress feedback
+- Automatic timestamped filenames for stego images and extracted data
+- Cross-platform support (Linux, Windows, macOS)
 
 ---
 
-## [Initial Release - 2025-12-08] - v1.0.0
-
-Binaural Media Player - A Qt-based application for multimedia playback and brainwave audio generation.
-
-**Features:**
-- Multi-format audio/video playback (MP3, WAV, FLAC, OGG, M4A, MP4, etc.)
-- Real-time binaural and isochronic tone generation
-- Tabbed playlist management with search
-- Streaming from HTTP/HTTPS URLs
-- Brainwave entrainment with session timer
-- Customizable interface with color-coded toolbars
-- JSON-based preset and playlist storage
+**Full commit history**: [https://github.com/alamahant/Ermis/commits/v1.0.0](https://github.com/alamahant/Ermis/commits/v1.0.0)

@@ -4,5 +4,6 @@
         <file>resources/icons/pause.svg</file>
         <file>resources/icons/play.svg</file>
         <file>resources/icons/square.svg</file>
+        <file>io.github.alamahant.Ermis.png</file>
     </qresource>
 </RCC>

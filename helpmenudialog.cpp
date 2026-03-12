@@ -484,6 +484,7 @@ QString HelpMenuDialog::getAboutContent() {
     )").arg(QApplication::applicationVersion());
 }
 
+
 QString HelpMenuDialog::getFeaturesContent()
 {
     return R"(
@@ -504,9 +505,6 @@ QString HelpMenuDialog::getFeaturesContent()
 
                 <h3 style="color: #e67e22;">👁️ Live Preview</h3>
                 <p>Compare original and modified images side-by-side with zoom and pan capabilities.</p>
-
-                <h3 style="color: #e67e22;">🎨 PRT Artistic Mode</h3>
-                <p>Specialized visual steganography for creating scannable artistic codes with camera support.</p>
 
                 <h3 style="color: #e67e22;">📊 Capacity Indicator</h3>
                 <p>Real-time display of available hiding space in bytes and percentage.</p>
@@ -541,7 +539,7 @@ QString HelpMenuDialog::getFeaturesContent()
                 <p>Intelligent prefix system (0x00 for text, length byte for files) ensures correct extraction.</p>
 
                 <h3 style="color: #27ae60;">🔍 Auto-Detection</h3>
-                <p>Extraction automatically detects whether data is text, a file, encrypted, or PRT-encoded.</p>
+                <p>Extraction automatically detects whether data is text, a file, or encrypted.</p>
             </div>
 
             <h2 style="color: #e74c3c; border-bottom: 2px solid #e74c3c; padding-bottom: 5px;">🔒 Security Features</h2>
@@ -576,19 +574,6 @@ QString HelpMenuDialog::getFeaturesContent()
                 <p>Real-time operation feedback and file path display.</p>
             </div>
 
-            <h2 style="color: #f39c12; border-bottom: 2px solid #f39c12; padding-bottom: 5px;">📸 Camera Integration</h2>
-
-            <div style="margin: 20px 0;">
-                <h3 style="color: #f39c12;">📷 PRT Code Scanning</h3>
-                <p>Live camera feed for scanning artistic PRT steganographic codes.</p>
-
-                <h3 style="color: #f39c12;">⚡ Frame Processing</h3>
-                <p>Intelligent frame throttling for smooth performance during scanning.</p>
-
-                <h3 style="color: #f39c12;">✅ Auto-Stop on Detection</h3>
-                <p>Camera automatically stops when a valid PRT code is detected.</p>
-            </div>
-
             <h2 style="color: #16a085; border-bottom: 2px solid #16a085; padding-bottom: 5px;">🔧 Technical Highlights</h2>
 
             <div style="margin: 20px 0;">
@@ -617,6 +602,7 @@ QString HelpMenuDialog::getFeaturesContent()
     )";
 }
 
+
 QString HelpMenuDialog::getInstructionsContent()
 {
     return R"(
@@ -625,7 +611,7 @@ QString HelpMenuDialog::getInstructionsContent()
 
     <div style="background-color: #ecf0f1; padding: 15px; border-radius: 8px; margin-bottom: 25px;">
         <h2 style="color: #2c3e50; margin-top: 0;">🔍 Overview</h2>
-        <p>Ermis allows you to hide secret data inside innocent-looking image and audio files, and extract hidden data from such files. The application features two main modes: <strong>Image Steganography</strong> and <strong>Audio Steganography</strong>, with a special <strong>PRT Artistic Mode</strong> for visual codes.</p>
+        <p>Ermis allows you to hide secret data inside innocent-looking image and audio files, and extract hidden data from such files. The application features two main modes: <strong>Image Steganography</strong> and <strong>Audio Steganography</strong>.</p>
     </div>
 
     <h2 style="color: #9b59b6; border-bottom: 2px solid #9b59b6; padding-bottom: 5px;">🖼️ Hiding Data in Images</h2>
@@ -689,7 +675,6 @@ QString HelpMenuDialog::getInstructionsContent()
         <ul style="padding-left: 20px;">
             <li>Whether the data is text or a file</li>
             <li>If encryption was used (prompts for passphrase)</li>
-            <li>If it's a PRT artistic code</li>
         </ul>
 
         <h3 style="color: #e67e22;">Step 3: Save Extracted Data</h3>
@@ -702,32 +687,6 @@ QString HelpMenuDialog::getInstructionsContent()
             <h3 style="color: #856404; margin-top: 0;">📋 Note on Large Text</h3>
             <p>If extracted text is very large, it may be saved to file but not displayed in the preview panel to prevent UI freezing. Check the saved file location for the complete content.</p>
         </div>
-    </div>
-
-    <h2 style="color: #f39c12; border-bottom: 2px solid #f39c12; padding-bottom: 5px;">🎨 PRT Artistic Mode</h2>
-
-    <div style="margin: 20px 0;">
-        <h3 style="color: #e67e22;">What is PRT Mode?</h3>
-        <p>PRT (Pattern Recognition Transform) is a specialized steganography mode that creates visually appealing artistic codes that can be scanned with a camera.</p>
-
-        <h3 style="color: #e67e22;">Creating PRT Codes:</h3>
-        <ol style="padding-left: 25px;">
-            <li>Check the <strong>"PRT Mode"</strong> checkbox (appears next to AUDIO checkbox)</li>
-            <li>Load a carrier image and enter text as usual</li>
-            <li>Click <strong>"Hide Data"</strong> to create an artistic PRT code</li>
-        </ol>
-
-        <h3 style="color: #e67e22;">Scanning PRT Codes with Camera:</h3>
-        <ol style="padding-left: 25px;">
-            <li>Enable PRT Mode</li>
-            <li>Go to the Extract tab</li>
-            <li>Click <strong>"Start Camera"</strong> (button changes to "Stop Camera")</li>
-            <li>Point your camera at a printed or displayed PRT code</li>
-            <li>The extracted text appears automatically when a valid code is detected</li>
-            <li>Camera stops automatically after successful scan</li>
-        </ol>
-
-        <p><strong>Tip:</strong> PRT codes work best with good lighting and clear focus.</p>
     </div>
 
     <h2 style="color: #27ae60; border-bottom: 2px solid #27ae60; padding-bottom: 5px;">🖱️ Drag & Drop Tips</h2>
@@ -791,7 +750,6 @@ QString HelpMenuDialog::getInstructionsContent()
             <li>Clear all image previews and loaded files</li>
             <li>Reset input fields and radio buttons</li>
             <li>Clear extracted data and stego images</li>
-            <li>Stop camera if running</li>
             <li>Clear remembered passphrases</li>
         </ul>
     </div>
@@ -1707,12 +1665,10 @@ QString HelpMenuDialog::getChangelogContent()
         "<li><b>🎵 Audio Steganography:</b> Support for WAV, MP3, FLAC, OGG with FFmpeg conversion</li>"
         "<li><b>📝 Dual Input Modes:</b> Text input and file hiding with filename preservation</li>"
         "<li><b>🔒 AES Encryption:</b> Optional passphrase protection with ENCR marker detection</li>"
-        "<li><b>🎨 PRT Artistic Mode:</b> Specialized visual steganography with camera scanning support(to be released)</li>"
         "<li><b>🖱️ Drag & Drop:</b> Intuitive file loading by dragging directly into the application</li>"
         "<li><b>📋 Clipboard Integration:</b> One-click copying of extracted text</li>"
         "<li><b>📊 Capacity Indicator:</b> Real-time display of available hiding space</li>"
         "<li><b>🎚️ Audio Player:</b> Built-in playback controls for loaded audio files</li>"
-        "<li><b>📸 Camera Scanning:</b> Live camera feed for PRT code detection</li>"
         "<li><b>🔍 Smart Extraction:</b> Auto-detects encryption, file type, and text content</li>"
         "<li><b>💾 Persistent Paths:</b> Smart directory fallbacks (Pictures → Images, Music → AppDir)</li>"
         "<li><b>🧩 Modular Engine Design:</b> Separate steganography engines for images and audio</li>"

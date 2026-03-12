@@ -21,6 +21,7 @@ int main(int argc, char *argv[])
     //QDir().mkpath(Constants::musicPath);
 
     QApplication a(argc, argv);
+    a.setWindowIcon(QIcon(":/io.github.alamahant.Ermis.png"));
     MainWindow w;
     w.show();
     return a.exec();
