@@ -216,7 +216,7 @@ private:
     Qt::AspectRatioMode m_stegoAspectMode = Qt::KeepAspectRatio;
     void showSandboxWarning();
     void showStegoFolderWarning();
-
+    void openFolder();
 };
 
 #endif // MAINWINDOW_H

@@ -33,6 +33,7 @@
 #include"helpmenudialog.h"
 #include"donationdialog.h"
 #include<QSettings>
+#include<QDesktopServices>
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -274,6 +275,10 @@ void MainWindow::createMenus()
     QAction *saveAction = fileMenu->addAction("&Save Modified Image...");
     connect(saveAction, &QAction::triggered, this, &MainWindow::saveModifiedImage);
 
+    fileMenu->addSeparator();
+
+    QAction *openFolderAction = fileMenu->addAction("&Open Data Directory");
+    connect(openFolderAction, &QAction::triggered, this, &MainWindow::openFolder);
     fileMenu->addSeparator();
 
     QAction *exitAction = fileMenu->addAction("E&xit");
@@ -2613,4 +2618,19 @@ void MainWindow::onCameraButtonClicked()
         }
 
         // The actual save/open dialog should be called by the caller after this returns
+    }
+
+
+    void MainWindow::openFolder() {
+        // Optional: Check if the folder exists
+        QDir dir(Constants::appDirPath);
+        if (!dir.exists()) {
+            //qDebug() << "Folder does not exist:" << folderPath;
+            return;
+        }
+
+        // Convert local path to URL and open
+        if (!QDesktopServices::openUrl(QUrl::fromLocalFile(Constants::appDirPath))) {
+            //qDebug() << "Failed to open folder:" << folderPath;
+        }
     }
