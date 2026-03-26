@@ -34,7 +34,7 @@
 #include"donationdialog.h"
 #include<QSettings>
 #include<QDesktopServices>
-
+#include<QNetworkInterface>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -45,6 +45,9 @@ MainWindow::MainWindow(QWidget *parent)
     , audioPlayer(new AudioPlayer(this))
     , audioEngine(new AudioStegEngine(this))
     , ffmpeg(new FFmpegHandler(this))
+    , m_videoEngine(new VideoStegEngine(this))
+    , dialog(new TextStegDialog(this))
+    , pingDialog(new PingDialog(this))
 {
     setAcceptDrops(true);  // ENABLE DRAG & DROP
     ui->setupUi(this);
@@ -298,6 +301,39 @@ void MainWindow::createMenus()
         m_audioToolbar->setVisible(checked);
     });
 
+
+    QMenu *toolsMenu = menuBar()->addMenu("&Tools");
+
+    QAction *textStegAction = toolsMenu->addAction("Text Steganography");
+    connect(textStegAction, &QAction::triggered, this, &MainWindow::openTextSteganography);
+
+    toolsMenu->addSeparator();
+    m_pingStegAction = toolsMenu->addAction("Network Steganography");
+    connect(m_pingStegAction, &QAction::triggered, this, [this](){
+        onOpenPingDialog();
+    });
+    toolsMenu->addSeparator();
+
+    QAction* getMyIpAction = toolsMenu->addAction("Get my IP");
+    connect(getMyIpAction, &QAction::triggered, this, [this](){
+        QProcess process;
+        process.start("curl", QStringList() << "https://ifconfig.me/ip");
+        process.waitForFinished();
+        QString externalIp = QString(process.readAllStandardOutput()).trimmed();
+
+        // Get local IP
+        QString localIp;
+        for (const QHostAddress &addr : QNetworkInterface::allAddresses()) {
+            if (addr.protocol() == QAbstractSocket::IPv4Protocol && addr != QHostAddress::LocalHost) {
+                localIp = addr.toString();
+                break;
+            }
+        }
+
+        QMessageBox::information(this, "My IPs",
+            QString("External: %1\nLocal: %2").arg(externalIp, localIp));
+    });
+
     QMenu *helpMenu = menuBar()->addMenu("&Help");
 
     ////////////////////////////////////////////////////
@@ -362,20 +398,27 @@ void MainWindow::createMenus()
 
     // === ADD AUDIO STEG CHECKBOX ===
     audioStegCheckBox = new QCheckBox("AUDIO", this);
-    // Need to add it next to PRT - we'll use a widget container
+    videoStegCheckBox = new QCheckBox("VIDEO", this);
+    videoStegCheckBox->setVisible(false);
     QWidget *cornerWidget = new QWidget(this);
     QHBoxLayout *cornerLayout = new QHBoxLayout(cornerWidget);
+
     cornerLayout->setContentsMargins(0, 0, 10, 0);
     cornerLayout->setSpacing(10);
     cornerLayout->addWidget(audioStegCheckBox);
+    cornerLayout->addWidget(videoStegCheckBox);
     cornerLayout->addWidget(prtCheckBox);
 
     menuBar()->setCornerWidget(cornerWidget, Qt::TopRightCorner);
 
     audioStegCheckBox->setToolTip("Switch to Audio Steganography mode");
-    audioStegCheckBox->setCheckState(Qt::Unchecked);
+    videoStegCheckBox->setToolTip("Switch to Video Steganography mode");
 
+    audioStegCheckBox->setCheckState(Qt::Unchecked);
+    videoStegCheckBox->setCheckState(Qt::Unchecked);
     connect(audioStegCheckBox, &QCheckBox::toggled, this, &MainWindow::onAudioStegToggled);
+    connect(videoStegCheckBox, &QCheckBox::toggled, this, &MainWindow::onVideoStegToggled);
+
 }
 
 
@@ -414,10 +457,6 @@ void MainWindow::createMenus()
 
 
         connect(hideButton, &QPushButton::clicked, [this]() {
-            qDebug() << "=== HIDE BUTTON CLICKED ===";
-            qDebug() << "isAudioMode:" << isAudioMode;
-            qDebug() << "originalImage.isNull():" << originalImage.isNull();
-            qDebug() << "isTextInput:" << isTextInput;
 
             if (isAudioMode) {
                 hideDataInAudio();  // Call audio hide method
@@ -742,7 +781,7 @@ void MainWindow::createMenus()
         connect(cameraButton, &QPushButton::clicked, this, &MainWindow::onCameraButtonClicked);
         connect(clipboardButton, &QPushButton::clicked, [this] {
             QApplication::clipboard()->setText(extractedTextOutput->toPlainText());
-            statusBar()->showMessage("📋 Copied to clipboard!");
+            statusBar()->showMessage(" Copied to clipboard!");
         });
         connect(resetButton, &QPushButton::clicked, this, &MainWindow::resetAll);
 
@@ -1121,7 +1160,6 @@ void MainWindow::toggleInputMethod()
         if (!urls.isEmpty()) {
             QString filePath = urls.first().toLocalFile();
             //processDroppedImage(filePath);
-            qDebug()<<"from inside dropevent. isaudiomode : "<< isAudioMode;
             if (isAudioMode) {
                 processDroppedAudio(filePath);
             } else {
@@ -1173,7 +1211,7 @@ void MainWindow::onCameraButtonClicked()
             stopCamera();
             Constants::isCameraOn = false;
 
-            cameraButton->setText("📸 Scan PRT Code");
+            cameraButton->setText(" Scan PRT Code");
         } else {
             setupCamera();
             Constants::isCameraOn = true;
@@ -1669,12 +1707,9 @@ void MainWindow::onCameraButtonClicked()
             file.close();
 
             // Check header integrity
-            qDebug() << "Header first 4 bytes:" << wholeFile.left(4);
-            qDebug() << "Should be RIFF:" << (wholeFile.left(4) == "RIFF" ? "OK" : "CORRUPT!");
 
             // Check data size field (bytes 4-7)
             quint32 riffSize = *reinterpret_cast<const quint32*>(wholeFile.mid(4,4).constData());
-            qDebug() << "RIFF size:" << riffSize << "actual file size:" << wholeFile.size();
 
         }
 
@@ -2277,10 +2312,11 @@ void MainWindow::onCameraButtonClicked()
     void MainWindow::onAudioStegToggled(bool checked)
     {
         isAudioMode = checked;
-        qDebug() << "isaudiomode :" << isAudioMode;
 
         // Update UI elements based on mode
         if (checked) {
+            currentMode = AudioMode;
+
             // Switching to AUDIO mode
             // Change button texts
             if (openImageButton) openImageButton->setText("Select Audio Carrier");
@@ -2343,6 +2379,77 @@ void MainWindow::onCameraButtonClicked()
         }
         this->adjustSize();
     }
+
+    void MainWindow::onVideoStegToggled(bool checked)
+    {
+        //isAudioMode = checked;
+
+        // Update UI elements based on mode
+        if (checked) {
+            currentMode = VideoMode;
+            // Switching to AUDIO mode
+            // Change button texts
+            if (openImageButton) openImageButton->setText("Select Audio Carrier");
+            if (saveImageButton) saveImageButton->setText("Save Modified Audio");
+            if (openStegoImageButton) openStegoImageButton->setText("Open Audio with Hidden Data");
+
+            // Clear any image pixmaps and show text instead
+            if (originalImageLabel) {
+                originalImageLabel->setPixmap(QPixmap());
+                originalImageLabel->setText("Original Audio (not loaded)");
+            }
+            if (modifiedImageLabel) {
+                modifiedImageLabel->setPixmap(QPixmap());
+                modifiedImageLabel->setText("Modified Audio (not yet created)");
+            }
+
+            // Update capacity label
+            if (capacityLabel) {
+                capacityLabel->setText("Capacity: 0/0 bytes (0%)");
+            }
+
+            if (stegoImageLabel) {
+                stegoImageLabel->setPixmap(QPixmap());
+                stegoImageLabel->setText("Steganographic Audio (not loaded)");
+            }
+
+            // Disable camera button
+            if (cameraButton) cameraButton->setEnabled(false);
+
+        } else {
+            // Switching back to IMAGE mode
+            // Restore button texts
+            if (openImageButton) openImageButton->setText("Select Carrier Image");
+            if (saveImageButton) saveImageButton->setText("Save Modified Image");
+            if (openStegoImageButton) openStegoImageButton->setText("Open Image with Hidden Data");
+
+            // Restore image labels
+            if (originalImageLabel) {
+                originalImageLabel->setPixmap(QPixmap());
+                originalImageLabel->setText("Original Image");
+            }
+            if (modifiedImageLabel) {
+                modifiedImageLabel->setPixmap(QPixmap());
+                modifiedImageLabel->setText("Modified Image");
+            }
+
+            // Re-enable camera button
+            if (cameraButton) cameraButton->setEnabled(true);
+
+            // CRITICAL FIX: Re-enable and show text input based on current radio button state
+            toggleInputMethod();
+
+            // Restore image capacity
+            updateCapacityStatus();
+        }
+
+        // Force layout update
+        if (mainLayout) {
+            mainLayout->activate();
+        }
+        this->adjustSize();
+    }
+
 
 
     void MainWindow::openAudioCarrierFromDrop(const QString &filePath)
@@ -2625,12 +2732,27 @@ void MainWindow::onCameraButtonClicked()
         // Optional: Check if the folder exists
         QDir dir(Constants::appDirPath);
         if (!dir.exists()) {
-            //qDebug() << "Folder does not exist:" << folderPath;
             return;
         }
 
         // Convert local path to URL and open
         if (!QDesktopServices::openUrl(QUrl::fromLocalFile(Constants::appDirPath))) {
-            //qDebug() << "Failed to open folder:" << folderPath;
         }
     }
+
+
+    void MainWindow::openTextSteganography()
+    {
+        // Create and show the text steganography dialog
+        dialog->show();
+        //dialog.exec();  // Modal dialog
+
+        // After dialog closes, you could optionally update something
+        // statusBar()->showMessage("Text steganography completed");
+    }
+
+    void MainWindow::onOpenPingDialog()
+    {
+        pingDialog->show();
+    }
+

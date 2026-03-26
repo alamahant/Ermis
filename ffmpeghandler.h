@@ -69,6 +69,7 @@ public:
         qint64 fileSize = 0;
         bool isValid = false;
         QString error;
+        qint64 dataSize = 0;  // Size of audio data in bytes
     };
 
     /**
@@ -115,6 +116,41 @@ private:
     QTemporaryFile *m_tempFile;
     QString m_ffmpegPath;
     QString m_ffprobePath;
+
+//videosteg members
+    // Add to ffmpeghandler.h inside the class definition
+ public:
+    struct VideoInfo {
+        bool isValid = false;
+        int width = 0;
+        int height = 0;
+        int frameCount = 0;
+        double fps = 0.0;
+        double durationSeconds = 0.0;
+        QString codec;
+        QString pixelFormat;
+        qint64 bitrate = 0;
+        QString error;
+
+        // Audio info if present
+        int audioSampleRate = 0;
+        int audioChannels = 0;
+        int audioBitsPerSample = 0;
+        qint64 audioDataSize = 0;
+
+    };
+
+    // Video methods
+    VideoInfo getVideoInfo(const QString &filePath);
+    bool demuxVideo(const QString &inputFile,
+                    QList<QImage> &frames,
+                    QByteArray &audioData,
+                    const VideoInfo &info);
+    bool remuxVideo(const QString &outputFile,
+                    const QList<QImage> &frames,
+                    const QByteArray &audioData,
+                    const VideoInfo &info);
+
 };
 
 #endif // FFMPEGHANDLER_H

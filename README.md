@@ -1,6 +1,6 @@
 # Ermis - Steganography Tool
 
-![Ermis Logo](screenshots/Main.png)
+![Ermis Logo](resources/jasmine.png)
 
 Ermis is a cross-platform steganography application that allows you to hide and extract secret data within digital media files. Named after the Greek god of messages and communication, Ermis enables covert communication through innocent-looking image and audio files.
 

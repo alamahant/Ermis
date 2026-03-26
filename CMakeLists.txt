@@ -16,8 +16,8 @@ if(FLATPAK_BUILD)
 endif()
 
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Qt6Concurrent Qt6Multimedia)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Concurrent Multimedia)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Qt6Concurrent Qt6Multimedia Qt6Concurrent)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Concurrent Multimedia Concurrent)
 
 find_package(OpenSSL REQUIRED)
 # Add the custom QCA installation to the prefix path
@@ -35,8 +35,6 @@ set(PROJECT_SOURCES
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     find_package(Qt6 REQUIRED COMPONENTS Core)
-find_package(Qt6 REQUIRED COMPONENTS Core)
-find_package(Qt6 REQUIRED COMPONENTS Core)
 
     qt_add_executable(Ermis
         MANUAL_FINALIZATION
@@ -50,6 +48,17 @@ find_package(Qt6 REQUIRED COMPONENTS Core)
         resources.qrc
         helpmenudialog.cpp helpmenudialog.h
         donationdialog.cpp donationdialog.h
+        videostegengine.cpp videostegengine.h
+        textstegengine.cpp textstegengine.h
+        textstegdialog.cpp textstegdialog.h
+        textstegdialog.cpp textstegdialog.h textstegengine.cpp textstegengine.h
+        icmpstegengine.cpp icmpstegengine.h
+        pingdialog.cpp pingdialog.h
+        ipfilter.cpp ipfilter.h
+        udpstegengine.cpp udpstegengine.h
+        ertp_structs.h
+        dnsstegengine.cpp dnsstegengine.h
+        httpstegengine.cpp httpstegengine.h
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET Ermis APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -71,7 +80,7 @@ endif()
 
 #target_link_libraries(Ermis PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 #target_link_libraries(Ermis PRIVATE Qt${QT_VERSION_MAJOR}::Widgets qca-qt6 OpenSSL::SSL OpenSSL::Crypto)
-target_link_libraries(Ermis PRIVATE Qt${QT_VERSION_MAJOR}::Widgets OpenSSL::SSL OpenSSL::Crypto Qt6::Concurrent Qt6::Multimedia)
+target_link_libraries(Ermis PRIVATE Qt${QT_VERSION_MAJOR}::Widgets OpenSSL::SSL OpenSSL::Crypto Qt6::Concurrent Qt6::Multimedia Qt6::Concurrent)
 target_link_libraries(Ermis PRIVATE Qt6::Core)
 
 

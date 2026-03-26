@@ -36,6 +36,9 @@
 #include"audiostegengine.h"
 #include"ffmpeghandler.h"
 #include<QMenu>
+#include"videostegengine.h"
+#include"textstegdialog.h"
+#include"pingdialog.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -217,6 +220,27 @@ private:
     void showSandboxWarning();
     void showStegoFolderWarning();
     void openFolder();
+    //video steg
+    VideoStegEngine *m_videoEngine;
+    enum StegMode {
+        ImageMode,
+        AudioMode,
+        VideoMode
+    };
+
+    StegMode currentMode = ImageMode;
+    QCheckBox* videoStegCheckBox;
+    void onVideoStegToggled(bool checked);
+
+    //text steg
+    TextStegDialog* dialog = nullptr;
+    QAction* m_pingStegAction;
+    PingDialog* pingDialog = nullptr;
+private slots:
+    void onOpenPingDialog();
+    void openTextSteganography();
+
+
 };
 
 #endif // MAINWINDOW_H

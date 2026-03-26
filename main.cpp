@@ -17,6 +17,10 @@ int main(int argc, char *argv[])
     QDir().mkpath(Constants::imagesPath);
     QDir().mkpath(Constants::fusedImagesPath);
     QDir().mkpath(Constants::extractedImagesPath);
+    QDir().mkpath(Constants::receivedICMPPath);
+    QDir().mkpath(Constants::ermistmpPath);
+    QDir().mkpath(Constants::sslPath);
+
     //QDir().mkpath(Constants::picturesPath);
     //QDir().mkpath(Constants::musicPath);
 

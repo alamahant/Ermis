@@ -1,9 +1,8 @@
 #include "ffmpeghandler.h"
-
-
 #include <QFileInfo>
 #include <QRegularExpression>
 #include <QCoreApplication>
+#include<QImage>
 
 // ===== CONSTRUCTOR / DESTRUCTOR =====
 
@@ -170,11 +169,19 @@ FFmpegHandler::AudioInfo FFmpegHandler::getAudioInfo(const QString &filePath)
 
     QString output = ffprobe.readAllStandardOutput();
     parseFFprobeOutput(output, info);
-    info.isValid = true;
 
+    // Calculate dataSize if not set by parser
+    if (info.dataSize == 0 && info.durationSeconds > 0 && info.sampleRate > 0) {
+        int bytesPerSample = info.bitsPerSample / 8;
+        info.dataSize = static_cast<qint64>(info.durationSeconds *
+                                            info.sampleRate *
+                                            info.channels *
+                                            bytesPerSample);
+    }
+
+    info.isValid = true;
     return info;
 }
-
 
 
 
@@ -338,6 +345,7 @@ void FFmpegHandler::parseFFprobeOutput(const QString &output, AudioInfo &info)
     QRegularExpression durationRegex("\"duration\"\\s*:\\s*\"([\\d\\.]+)\"");
     QRegularExpression bitrateRegex("\"bit_rate\"\\s*:\\s*\"(\\d+)\"");
     QRegularExpression codecRegex("\"codec_name\"\\s*:\\s*\"([^\"]+)\"");
+    QRegularExpression dataSizeRegex("\"size\"\\s*:\\s*\"?(\\d+)\"?");
 
     QRegularExpressionMatch match;
 
@@ -369,6 +377,10 @@ void FFmpegHandler::parseFFprobeOutput(const QString &output, AudioInfo &info)
 
     // Default to 16-bit for PCM
     info.bitsPerSample = 16;
+    match = dataSizeRegex.match(output);
+        if (match.hasMatch()) {
+            info.dataSize = match.captured(1).toLongLong();
+        }
 }
 
 QString FFmpegHandler::findFFprobe() const
@@ -393,3 +405,249 @@ QString FFmpegHandler::findFFprobe() const
     }
     return QString();
 }
+
+
+// video steganography
+
+// ===== VIDEO METHODS =====
+
+FFmpegHandler::VideoInfo FFmpegHandler::getVideoInfo(const QString &filePath)
+{
+    VideoInfo info;
+    info.isValid = false;
+
+    if (!QFile::exists(filePath)) {
+        info.error = "File does not exist";
+        return info;
+    }
+
+    QStringList args;
+    args << "-v" << "quiet"
+         << "-print_format" << "json"
+         << "-show_format"
+         << "-show_streams"
+         << filePath;
+
+    QProcess ffprobe;
+    ffprobe.start(m_ffprobePath, args);
+    ffprobe.waitForFinished(8000);
+
+    if (ffprobe.exitCode() != 0) {
+        info.error = ffprobe.readAllStandardError();
+        return info;
+    }
+
+    QString output = ffprobe.readAllStandardOutput();
+
+    // Parse video stream
+    QRegularExpression videoStreamRegex("\"codec_type\"\\s*:\\s*\"video\"[^}]*}");
+    QRegularExpressionMatch videoMatch = videoStreamRegex.match(output);
+    if (videoMatch.hasMatch()) {
+        QString videoStream = videoMatch.captured();
+
+        QRegularExpression widthRegex("\"width\"\\s*:\\s*(\\d+)");
+        QRegularExpression heightRegex("\"height\"\\s*:\\s*(\\d+)");
+        QRegularExpression codecRegex("\"codec_name\"\\s*:\\s*\"([^\"]+)\"");
+        QRegularExpression pixelRegex("\"pix_fmt\"\\s*:\\s*\"([^\"]+)\"");
+        QRegularExpression fpsRegex("\"r_frame_rate\"\\s*:\\s*\"(\\d+)/(\\d+)\"");
+        QRegularExpression nbFramesRegex("\"nb_frames\"\\s*:\\s*\"?(\\d+)\"?");
+
+        if (widthRegex.match(videoStream).hasMatch())
+            info.width = widthRegex.match(videoStream).captured(1).toInt();
+        if (heightRegex.match(videoStream).hasMatch())
+            info.height = heightRegex.match(videoStream).captured(1).toInt();
+        if (codecRegex.match(videoStream).hasMatch())
+            info.codec = codecRegex.match(videoStream).captured(1);
+        if (pixelRegex.match(videoStream).hasMatch())
+            info.pixelFormat = pixelRegex.match(videoStream).captured(1);
+
+        // Parse frame rate
+        if (fpsRegex.match(videoStream).hasMatch()) {
+            int num = fpsRegex.match(videoStream).captured(1).toInt();
+            int den = fpsRegex.match(videoStream).captured(2).toInt();
+            if (den > 0) info.fps = static_cast<double>(num) / den;
+        }
+
+        // Parse frame count
+        if (nbFramesRegex.match(videoStream).hasMatch()) {
+            info.frameCount = nbFramesRegex.match(videoStream).captured(1).toInt();
+        }
+    }
+
+    // Parse format for duration
+    QRegularExpression durationRegex("\"duration\"\\s*:\\s*\"([\\d\\.]+)\"");
+    if (durationRegex.match(output).hasMatch()) {
+        info.durationSeconds = durationRegex.match(output).captured(1).toDouble();
+    }
+
+    // Parse audio stream
+    QRegularExpression audioStreamRegex("\"codec_type\"\\s*:\\s*\"audio\"[^}]*}");
+    QRegularExpressionMatch audioMatch = audioStreamRegex.match(output);
+    if (audioMatch.hasMatch()) {
+        QString audioStream = audioMatch.captured();
+
+        QRegularExpression sampleRateRegex("\"sample_rate\"\\s*:\\s*\"?(\\d+)\"?");
+        QRegularExpression channelsRegex("\"channels\"\\s*:\\s*(\\d+)");
+        QRegularExpression bitsRegex("\"bits_per_sample\"\\s*:\\s*(\\d+)");
+
+        if (sampleRateRegex.match(audioStream).hasMatch())
+            info.audioSampleRate = sampleRateRegex.match(audioStream).captured(1).toInt();
+        if (channelsRegex.match(audioStream).hasMatch())
+            info.audioChannels = channelsRegex.match(audioStream).captured(1).toInt();
+        if (bitsRegex.match(audioStream).hasMatch())
+            info.audioBitsPerSample = bitsRegex.match(audioStream).captured(1).toInt();
+
+        // Rough estimate of audio data size
+        if (info.durationSeconds > 0 && info.audioSampleRate > 0) {
+            int bytesPerSample = (info.audioBitsPerSample > 0) ? info.audioBitsPerSample / 8 : 2;
+            info.audioDataSize = static_cast<qint64>(info.durationSeconds *
+                                                      info.audioSampleRate *
+                                                      info.audioChannels *
+                                                      bytesPerSample);
+        }
+    }
+
+    // If frame count not found, estimate from duration
+    if (info.frameCount <= 0 && info.durationSeconds > 0 && info.fps > 0) {
+        info.frameCount = static_cast<int>(info.durationSeconds * info.fps);
+    }
+
+    info.isValid = (info.width > 0 && info.height > 0 && info.frameCount > 0);
+    return info;
+}
+
+bool FFmpegHandler::demuxVideo(const QString &inputFile,
+                               QList<QImage> &frames,
+                               QByteArray &audioData,
+                               const VideoInfo &info)
+{
+    frames.clear();
+    audioData.clear();
+
+    if (!QFile::exists(inputFile)) return false;
+
+    // Create temp directory for frames
+    QString tempDir = QDir::temp().absoluteFilePath("ermis_frames_XXXXXX");
+    tempDir = QTemporaryFile(tempDir).fileName(); // Get unique name
+    QDir().mkpath(tempDir);
+
+    // Extract frames as PNG images
+    QStringList args;
+    args << "-y"
+         << "-i" << inputFile
+         << "-vf" << "fps=" + QString::number(info.fps)
+         << "-vframes" << QString::number(info.frameCount)
+         << "-q:v" << "2"  // High quality
+         << tempDir + "/frame_%06d.png";
+
+    if (!runFFmpeg(args)) {
+        QDir(tempDir).removeRecursively();
+        return false;
+    }
+
+    // Load frames
+    QDir frameDir(tempDir);
+    QStringList frameFiles = frameDir.entryList(QStringList() << "*.png", QDir::Files);
+    std::sort(frameFiles.begin(), frameFiles.end());
+
+    for (const QString &frameFile : frameFiles) {
+        QImage image(tempDir + "/" + frameFile);
+        if (!image.isNull()) {
+            // Convert to consistent format
+            if (image.format() != QImage::Format_ARGB32) {
+                image = image.convertToFormat(QImage::Format_ARGB32);
+            }
+            frames.append(image);
+        }
+    }
+
+    // Extract audio track if present
+    if (info.audioSampleRate > 0) {
+        QString tempAudio = createTempFile(".wav");
+        QStringList audioArgs;
+        audioArgs << "-y"
+                  << "-i" << inputFile
+                  << "-vn"  // No video
+                  << "-acodec" << "pcm_s16le"
+                  << "-ar" << QString::number(info.audioSampleRate)
+                  << "-ac" << QString::number(info.audioChannels)
+                  << tempAudio;
+
+        if (runFFmpeg(audioArgs)) {
+            QFile audioFile(tempAudio);
+            if (audioFile.open(QIODevice::ReadOnly)) {
+                audioData = audioFile.readAll();
+                audioFile.close();
+            }
+        }
+        QFile::remove(tempAudio);
+    }
+
+    // Clean up temp frames
+    QDir(tempDir).removeRecursively();
+
+    return !frames.isEmpty();
+}
+
+bool FFmpegHandler::remuxVideo(const QString &outputFile,
+                               const QList<QImage> &frames,
+                               const QByteArray &audioData,
+                               const VideoInfo &info)
+{
+    if (frames.isEmpty()) return false;
+
+    // Create temp directory for frames
+    QString tempDir = QDir::temp().absoluteFilePath("ermis_output_frames_XXXXXX");
+    tempDir = QTemporaryFile(tempDir).fileName();
+    QDir().mkpath(tempDir);
+
+    // Save frames as PNG
+    for (int i = 0; i < frames.size(); i++) {
+        QString framePath = tempDir + "/frame_" +
+                           QString::number(i + 1).rightJustified(6, '0') + ".png";
+        frames[i].save(framePath, "PNG");
+    }
+
+    // Prepare audio input if present
+    QString audioInput = "";
+    QString tempAudioFile;
+
+    if (!audioData.isEmpty()) {
+        tempAudioFile = createTempFile(".wav");
+        QFile audioFile(tempAudioFile);
+        if (audioFile.open(QIODevice::WriteOnly)) {
+            audioFile.write(audioData);
+            audioFile.close();
+            audioInput = "-i " + tempAudioFile;
+        }
+    }
+
+    // Build ffmpeg command
+    QStringList args;
+    args << "-y"
+         << "-framerate" << QString::number(info.fps)
+         << "-i" << (tempDir + "/frame_%06d.png");
+
+    if (!audioInput.isEmpty()) {
+        args << "-i" << tempAudioFile;
+        args << "-c:a" << "copy";
+    }
+
+    args << "-c:v" << "libx264"
+         << "-pix_fmt" << "yuv420p"
+         << "-crf" << "23"  // Quality
+         << "-preset" << "medium"
+         << outputFile;
+
+    bool success = runFFmpeg(args);
+
+    // Clean up
+    QDir(tempDir).removeRecursively();
+    if (!tempAudioFile.isEmpty()) {
+        QFile::remove(tempAudioFile);
+    }
+
+    return success;
+}
+
+
