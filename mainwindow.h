@@ -39,6 +39,7 @@
 #include"videostegengine.h"
 #include"textstegdialog.h"
 #include"pingdialog.h"
+#include<QSplitter>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -239,7 +240,14 @@ private:
 private slots:
     void onOpenPingDialog();
     void openTextSteganography();
-
+    void performFactoryReset();
+    void setTheme(bool checked);
+    void createErmisSymlink();
+private:
+    QSplitter *extractSplitter;
+    QSplitter *hideSplitter;
+    bool isDarkTheme = false;
+    QAction *themeToggleAction;
 
 };
 

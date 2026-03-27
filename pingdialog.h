@@ -110,7 +110,6 @@ private slots:
 private:
     void populateListWidgetFromTmp();
     IpFilter* ipFilter = nullptr;
-    QSettings settings;
     QPlainTextEdit* m_receivedTextEdit;
     QComboBox* m_protocolCombo;
     QSpinBox* m_portSpinBox;

@@ -16,8 +16,8 @@ if(FLATPAK_BUILD)
 endif()
 
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Qt6Concurrent Qt6Multimedia Qt6Concurrent)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Concurrent Multimedia Concurrent)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Qt6Concurrent Qt6Multimedia Qt6Concurrent Qt6Network)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Concurrent Multimedia Concurrent Network)
 
 find_package(OpenSSL REQUIRED)
 # Add the custom QCA installation to the prefix path
@@ -80,7 +80,8 @@ endif()
 
 #target_link_libraries(Ermis PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 #target_link_libraries(Ermis PRIVATE Qt${QT_VERSION_MAJOR}::Widgets qca-qt6 OpenSSL::SSL OpenSSL::Crypto)
-target_link_libraries(Ermis PRIVATE Qt${QT_VERSION_MAJOR}::Widgets OpenSSL::SSL OpenSSL::Crypto Qt6::Concurrent Qt6::Multimedia Qt6::Concurrent)
+target_link_libraries(Ermis PRIVATE Qt${QT_VERSION_MAJOR}::Widgets OpenSSL::SSL OpenSSL::Crypto Qt6::Concurrent Qt6::Multimedia
+    Qt6::Network Qt6::Concurrent)
 target_link_libraries(Ermis PRIVATE Qt6::Core)
 
 

@@ -51,12 +51,20 @@ MainWindow::MainWindow(QWidget *parent)
 {
     setAcceptDrops(true);  // ENABLE DRAG & DROP
     ui->setupUi(this);
+    setWindowTitle("Ermis - Steganography");
+    setMinimumSize(900, 700);
+
     setupUi();
     createMenus();
     createConnections();
 
-    setWindowTitle("Ermis - Steganography");
-    setMinimumSize(900, 700);
+    QSettings settings;
+    bool isdarktheme = settings.value("theme/dark", false).toBool();
+    setTheme(isdarktheme);
+    themeToggleAction->setChecked(isdarktheme);
+    qDebug() << isdarktheme;
+
+
     statusBar()->showMessage("Ready");
 }
 
@@ -177,7 +185,7 @@ void MainWindow::setupUi()
     dataInputLayout->addWidget(capacityLabel);
 
     // Create splitter for Hide tab
-    QSplitter *hideSplitter = new QSplitter(Qt::Vertical, hideTab);
+    hideSplitter = new QSplitter(Qt::Vertical, hideTab);
     hideSplitter->setHandleWidth(3);  // Default is 3-4, make it 8-10
     hideSplitter->addWidget(topSectionWidget);     // Top: preview + buttons
     hideSplitter->addWidget(dataInputGroup);       // Bottom: data input group
@@ -243,7 +251,7 @@ void MainWindow::setupUi()
     saveExtractedFileButton->setToolTip(tr("Extract data from the image and save it to a file"));
 
     // Create splitter for Extract tab
-    QSplitter *extractSplitter = new QSplitter(Qt::Vertical, extractTab);
+    extractSplitter = new QSplitter(Qt::Vertical, extractTab);
     extractSplitter->setHandleWidth(3);
     extractSplitter->addWidget(extractTopSectionWidget);  // Top: image + buttons
     extractSplitter->addWidget(extractedTextOutput);      // Middle: text output
@@ -266,6 +274,8 @@ void MainWindow::setupUi()
     extractTabLayout->addWidget(extractSplitter);
     extractTabLayout->addWidget(saveExtractedFileButton);
     mainLayout->addWidget(createAudioPlayerBar());
+
+
 }
 
 void MainWindow::createMenus()
@@ -284,10 +294,16 @@ void MainWindow::createMenus()
     connect(openFolderAction, &QAction::triggered, this, &MainWindow::openFolder);
     fileMenu->addSeparator();
 
+    fileMenu->addSeparator();
+    QAction *createSymlinkAction = fileMenu->addAction("Create Shortcut to Ermis Data");
+    connect(createSymlinkAction, &QAction::triggered, this, &MainWindow::createErmisSymlink);
+    fileMenu->addSeparator();
+
     QAction *exitAction = fileMenu->addAction("E&xit");
     connect(exitAction, &QAction::triggered, this, &QWidget::close);
 
     QMenu *viewMenu = menuBar()->addMenu("&View");
+
     toggleAudioBarAction = viewMenu->addAction("Show Audio Bar");
     toggleAudioBarAction->setCheckable(true);
     toggleAudioBarAction->setChecked(false);
@@ -301,6 +317,14 @@ void MainWindow::createMenus()
         m_audioToolbar->setVisible(checked);
     });
 
+    viewMenu->addSeparator();
+    themeToggleAction = viewMenu->addAction("Dark Theme");
+    themeToggleAction->setCheckable(true);
+    themeToggleAction->setChecked(false);
+
+    connect(themeToggleAction, &QAction::triggered, this, &MainWindow::setTheme);
+
+    viewMenu->addAction(themeToggleAction);
 
     QMenu *toolsMenu = menuBar()->addMenu("&Tools");
 
@@ -333,6 +357,9 @@ void MainWindow::createMenus()
         QMessageBox::information(this, "My IPs",
             QString("External: %1\nLocal: %2").arg(externalIp, localIp));
     });
+    toolsMenu->addSeparator();
+    QAction *factoryResetAction = toolsMenu->addAction("Factory Reset");
+    connect(factoryResetAction, &QAction::triggered, this, &MainWindow::performFactoryReset);
 
     QMenu *helpMenu = menuBar()->addMenu("&Help");
 
@@ -2751,8 +2778,213 @@ void MainWindow::onCameraButtonClicked()
         // statusBar()->showMessage("Text steganography completed");
     }
 
+    void MainWindow::performFactoryReset()
+    {
+        QMessageBox::StandardButton reply = QMessageBox::question(
+            this,
+            "Factory Reset",
+            "This will delete all saved settings and restore default values.\n"
+            "Use this option if you experience erratic behavior\n"
+            "especially in the network stack.\n"
+            "All your files will be preserved.\n"
+            "This action cannot be undone.\n\n"
+            "Do you want to continue?",
+            QMessageBox::Yes | QMessageBox::No
+        );
+
+        if (reply != QMessageBox::Yes)
+            return;
+
+        // Get the settings file path
+        QSettings settings;
+        QString settingsFile = settings.fileName();
+
+        // Clear all settings
+        settings.clear();
+
+        // Sync to disk
+        settings.sync();
+
+        // Delete the settings file
+        QFile::remove(settingsFile);
+
+
+        // Show success message
+        QMessageBox::information(
+            this,
+            "Factory Reset Complete",
+            "All settings have been reset to default values.\n\n"
+            "Please restart the application for changes to take effect."
+        );
+
+        // Ask to restart
+        QMessageBox::StandardButton restart = QMessageBox::question(
+            this,
+            "Restart Required",
+            "Would you like to restart the application now?",
+            QMessageBox::Yes | QMessageBox::No
+        );
+
+        if (restart == QMessageBox::Yes) {
+            qApp->quit();
+            QProcess::startDetached(qApp->applicationFilePath(), QStringList());
+        }
+    }
+
     void MainWindow::onOpenPingDialog()
     {
         pingDialog->show();
     }
 
+    void MainWindow::setTheme(bool checked){
+            QSettings settings;
+
+            if (checked) {
+                // Apply dark theme
+                QFile file(":/resources/dark.css");
+                if (file.open(QFile::ReadOnly)) {
+                    QString styleSheet = file.readAll();
+                    this->setStyleSheet(styleSheet);
+                    file.close();
+                    settings.setValue("theme/dark", true);
+                    settings.sync();
+                    isDarkTheme = true;
+                    qDebug() << "Dark theme applied";
+                } else {
+                    qWarning() << "Failed to load dark.css";
+                }
+            } else {
+                // Apply light theme
+                this->setStyleSheet("");
+
+                extractSplitter->setStyleSheet(
+                    "QSplitter::handle {"
+                    "    background-color: #e0c9a6;"
+                    "    height: 3px;"
+                    "}"
+                    "QSplitter::handle:hover {"
+                    "    background-color: #c9b386;"
+                    "}"
+                );
+
+                hideSplitter->setStyleSheet(
+                    "QSplitter::handle {"
+                    "    background-color: #e0c9a6;"
+                    "    height: 3px;"
+                    "}"
+                    "QSplitter::handle:hover {"
+                    "    background-color: #c9b386;"
+                    "}"
+                );
+
+                settings.setValue("theme/dark", false);
+                settings.sync();
+                isDarkTheme = false;
+                qDebug() << "Light theme applied";
+            }
+    }
+
+
+    void MainWindow::createErmisSymlink()
+    {
+#ifdef FLATPAK_BUILD
+        QString msg = "";
+        QMessageBox msgBox;
+        msgBox.setWindowTitle("Flatpak Permission Required");
+        msgBox.setText(QString(
+            "%1 is running as a Flatpak and may not have access to your home directory.\n\n"
+            "To create a symlink, you may need to grant home directory access first.\n\n"
+            "Option 1 - Terminal:\n"
+            "  Grant access:\n"
+            "    flatpak override --user --filesystem=home io.github.alamahant.%1\n\n"
+            "  Revoke access later:\n"
+            "    flatpak override --user --nofilesystem=home io.github.alamahant.%1\n\n"
+            "Option 2 - Flatseal:\n"
+            "  Install Flatseal from Flathub and grant 'Home' access to %1.\n\n"
+            "If you have already granted permissions, you can continue."
+        ).arg(QApplication::applicationName()));
+
+        msgBox.setIcon(QMessageBox::Information);
+
+        QPushButton *continueButton = msgBox.addButton("Continue", QMessageBox::AcceptRole);
+        QPushButton *cancelButton = msgBox.addButton("Cancel", QMessageBox::RejectRole);
+        msgBox.setDefaultButton(cancelButton);
+
+        msgBox.exec();
+
+        if (msgBox.clickedButton() != continueButton) {
+            return; // User cancelled
+        }
+
+#endif
+        // Open dialog to select destination folder
+        QString destinationDir = QFileDialog::getExistingDirectory(
+            this,
+            "Select Destination Folder for Symlink",
+            QDir::homePath(),
+            QFileDialog::ShowDirsOnly
+        );
+
+        if (destinationDir.isEmpty()) {
+            return; // User cancelled
+        }
+
+        // Create symlink path
+        QString symlinkPath = QDir(destinationDir).filePath(QApplication::applicationName());
+        // Check if symlink already exists
+        if (QFile::exists(symlinkPath) || QFileInfo(symlinkPath).isSymLink()) {
+            QMessageBox::StandardButton reply = QMessageBox::question(
+                this,
+                "Symlink Exists",
+                QString("A file or symlink already exists at:\n%1\n\nOverwrite?").arg(symlinkPath),
+                QMessageBox::Yes | QMessageBox::No
+            );
+
+            if (reply != QMessageBox::Yes) {
+                return;
+            }
+
+            // Remove existing file/symlink
+            if (!QFile::remove(symlinkPath)) {
+                QMessageBox::warning(this, "Error", "Could not remove existing file/symlink");
+                return;
+            }
+        }
+
+        // Create the symlink
+        QString targetPath = Constants::appDirPath;
+
+        if (!QFile::exists(targetPath)) {
+            QMessageBox::warning(this, "Error",
+                QString("Target directory does not exist:\n%1").arg(targetPath));
+            return;
+        }
+
+        if (QFile::link(targetPath, symlinkPath)) {
+            QMessageBox::information(
+                this,
+                "Symlink Created",
+                QString("Symlink created successfully!\n\n"
+                        "Name: %3\n"
+                        "Location: %1\n\n"
+                        "Now you can access Ermis data from:\n%2")
+                .arg(destinationDir)
+                .arg(symlinkPath)
+                .arg(QApplication::applicationName())
+            );
+        } else {
+            QMessageBox::warning(
+                this,
+                "Error",
+                QString("Failed to create symlink.\n\n"
+                        "Destination: %1\n"
+                        "Target: %2\n\n"
+                        "Possible reasons:\n"
+                        "• Insufficient permissions\n"
+                        "• Invalid destination path\n"
+                        "• Filesystem doesn't support symlinks")
+                .arg(symlinkPath)
+                .arg(targetPath)
+            );
+        }
+    }

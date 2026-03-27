@@ -71,15 +71,35 @@
 
   <url type="homepage">https://github.com/alamahant/Ermis</url>
   <url type="bugtracker">https://github.com/alamahant/Ermis/issues</url>
-<!--
+
   <screenshots>
     <screenshot type="default">
       <caption>Main interface with image steganography mode</caption>
       <image>https://raw.githubusercontent.com/alamahant/Ermis/master/screenshots/main.png</image>
     </screenshot>
   </screenshots>
--->
+
   <releases>
+
+<release version="1.1.0" date="2026-03-27">
+      <description>
+        <p>Network and text steganography expansion:</p>
+        <ul>
+          <li>Network steganography via ICMP, DNS, UDP, HTTP/TLS protocols</li>
+          <li>Zero-width character text steganography with binary encoding</li>
+          <li>AES-256-CBC encryption with PBKDF2 key derivation</li>
+          <li>Multi-layer security with composable steganography modes</li>
+          <li>Reliable packet delivery with sliding window protocol</li>
+          <li>IP filtering with whitelist/blacklist and CIDR support</li>
+          <li>File and plain text transfer with progress tracking</li>
+          <li>Text steganography UI with capacity calculator</li>
+          <li>Automatic text/binary format detection on extraction</li>
+          <li>Dark theme and dark-light theme toggle</li>
+          <li>User data folder shortcut creation feature</li>
+        </ul>
+      </description>
+    </release>
+
     <release version="1.0.0" date="2026-03-12">
       <description>
         <p>Initial release of Ermis:</p>

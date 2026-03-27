@@ -466,6 +466,26 @@ QString HelpMenuDialog::getAboutContent() {
 
             <hr style="margin: 30px 0; border: 1px solid #bdc3c7;">
 
+            <div style="margin: 20px 0; background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
+                <h4 style="color: #2c3e50; margin-bottom: 10px;">🌐 Network Steganography</h4>
+                <p style="text-align: left; margin: 10px 20px;">
+                    • <strong>ERTP Protocol</strong> — Ermis Reliable Transfer Protocol for covert network communication<br>
+                    • <strong>ICMP (Ping)</strong> — Hide data within ICMP echo request/reply packets<br>
+                    • <strong>UDP</strong> — Covert data transmission over UDP packets with custom payloads<br>
+                    • <strong>DNS</strong> — Encoded messages within DNS queries and responses<br>
+                    • <strong>HTTP/HTTPS (TLS)</strong> — Steganography within HTTP headers and TLS encrypted tunnels<br>
+                    • Reliable delivery with error correction and packet sequencing<br>
+                    • Bypasses traditional firewall detection by mimicking normal network traffic<br>
+                    • Perfect for secure, undetectable data transfer over networks
+                </p>
+                <p style="margin-top: 10px;">
+                    <strong>ERTP Protocol Repository:</strong><br>
+                    <a href="https://github.com/alamahant/ERTP">https://github.com/alamahant/ERTP</a>
+                </p>
+            </div>
+
+            <hr style="margin: 30px 0; border: 1px solid #bdc3c7;">
+
             <div style="margin: 20px 0;">
                 <p style="margin: 5px 0; color: #7f8c8d;">
                     <strong>Copyright © 2026 Dharma</strong>
@@ -484,270 +504,333 @@ QString HelpMenuDialog::getAboutContent() {
     )").arg(QApplication::applicationVersion());
 }
 
-
 QString HelpMenuDialog::getFeaturesContent()
 {
     return R"(
         <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #2c3e50;">
-            <h1 style="color: #8e44ad; text-align: center; margin-bottom: 20px;">🕊️ Ermis Features</h1>
+            <h1 style="color: #8e44ad; text-align: center; margin-bottom: 20px;">Ermis Features</h1>
 
             <div style="background-color: #ecf0f1; padding: 15px; border-radius: 8px; margin-bottom: 25px;">
                 <h2 style="color: #2c3e50; margin-top: 0;">Steganography & Covert Communication</h2>
-                <p>A cross-platform steganography tool combining image and audio hiding techniques with
-                optional encryption, enabling private communication through innocent-looking media files.</p>
+                <p>Cross-platform steganography combining image, audio, text, and network hiding with optional encryption for private multi-layer communication.</p>
             </div>
 
-            <h2 style="color: #3498db; border-bottom: 2px solid #3498db; padding-bottom: 5px;">🖼️ Image Steganography</h2>
-
+            <h2 style="color: #3498db; border-bottom: 2px solid #3498db; padding-bottom: 5px;">Image Steganography</h2>
             <div style="margin: 20px 0;">
-                <h3 style="color: #e67e22;">📸 Multi-Format Support</h3>
-                <p>Hide data in PNG, JPG, and BMP images using LSB (Least Significant Bit) techniques.</p>
-
-                <h3 style="color: #e67e22;">👁️ Live Preview</h3>
-                <p>Compare original and modified images side-by-side with zoom and pan capabilities.</p>
-
-                <h3 style="color: #e67e22;">📊 Capacity Indicator</h3>
-                <p>Real-time display of available hiding space in bytes and percentage.</p>
+                <h3 style="color: #e67e22;">Multi-Format Support</h3>
+                <p>Hide data in PNG, JPG, BMP using LSB (Least Significant Bit) techniques.</p>
+                <h3 style="color: #e67e22;">Live Preview</h3>
+                <p>Side-by-side comparison of original and modified images with zoom and pan.</p>
+                <h3 style="color: #e67e22;">Capacity Indicator</h3>
+                <p>Real-time available space display in bytes and percentage.</p>
             </div>
 
-            <h2 style="color: #9b59b6; border-bottom: 2px solid #9b59b6; padding-bottom: 5px;">🎵 Audio Steganography</h2>
-
+            <h2 style="color: #9b59b6; border-bottom: 2px solid #9b59b6; padding-bottom: 5px;">Audio Steganography</h2>
             <div style="margin: 20px 0;">
-                <h3 style="color: #9b59b6;">🎧 Wide Format Support</h3>
-                <p>Hide data in WAV, MP3, FLAC, and OGG audio files.</p>
-
-                <h3 style="color: #9b59b6;">🔄 Automatic Conversion</h3>
-                <p>Non-WAV files are seamlessly converted using FFmpeg for consistent processing.</p>
-
-                <h3 style="color: #9b59b6;">📈 Metadata Extraction</h3>
-                <p>Automatically reads sample rate, channels, bit depth, and duration for capacity calculation.</p>
-
-                <h3 style="color: #9b59b6;">🎚️ Audio Playback</h3>
-                <p>Built-in audio player with play/pause/stop controls and volume adjustment.</p>
+                <h3 style="color: #9b59b6;">Wide Format Support</h3>
+                <p>WAV, MP3, FLAC, OGG audio files with automatic FFmpeg conversion.</p>
+                <h3 style="color: #9b59b6;">Metadata Extraction</h3>
+                <p>Automatic sample rate, channels, bit depth, and duration detection.</p>
+                <h3 style="color: #9b59b6;">Audio Playback</h3>
+                <p>Built-in player with play/pause/stop and volume controls.</p>
             </div>
 
-            <h2 style="color: #27ae60; border-bottom: 2px solid #27ae60; padding-bottom: 5px;">📝 Data Handling</h2>
-
+            <h2 style="color: #27ae60; border-bottom: 2px solid #27ae60; padding-bottom: 5px;">Text Steganography</h2>
             <div style="margin: 20px 0;">
-                <h3 style="color: #27ae60;">⌨️ Text Input</h3>
-                <p>Hide plain text messages with automatic UTF-8 encoding.</p>
-
-                <h3 style="color: #27ae60;">📁 File Input</h3>
-                <p>Hide any file type with automatic filename preservation for accurate recovery.</p>
-
-                <h3 style="color: #27ae60;">🏷️ Smart Markers</h3>
-                <p>Intelligent prefix system (0x00 for text, length byte for files) ensures correct extraction.</p>
-
-                <h3 style="color: #27ae60;">🔍 Auto-Detection</h3>
-                <p>Extraction automatically detects whether data is text, a file, or encrypted.</p>
+                <h3 style="color: #27ae60;">Zero-Width Character Encoding</h3>
+                <p>Hide messages in plain text using invisible Unicode characters (U+200B, U+200C).</p>
+                <h3 style="color: #27ae60;">Binary-to-Text Mapping</h3>
+                <p>1 bit per visible character with 4-byte header for data integrity.</p>
+                <h3 style="color: #27ae60;">Cover Text Support</h3>
+                <p>Hide in existing text or generate capacity-aware cover messages.</p>
+                <h3 style="color: #27ae60;">Real-Time Capacity</h3>
+                <p>Calculate available space from cover text length with percentage indicator.</p>
             </div>
 
-            <h2 style="color: #e74c3c; border-bottom: 2px solid #e74c3c; padding-bottom: 5px;">🔒 Security Features</h2>
-
+            <h2 style="color: #8e44ad; border-bottom: 2px solid #8e44ad; padding-bottom: 5px;">Network Steganography (ERTP)</h2>
             <div style="margin: 20px 0;">
-                <h3 style="color: #e74c3c;">🔐 AES Encryption</h3>
-                <p>Optional passphrase-based encryption with "ENCR" marker for automatic detection.</p>
-
-                <h3 style="color: #e74c3c;">💭 Passphrase Memory</h3>
-                <p>Remember passphrases during the current session for convenience.</p>
-
-                <h3 style="color: #e74c3c;">🛡️ Encrypted Extraction</h3>
-                <p>Automatic decryption prompt when encrypted data is detected.</p>
+                <h3 style="color: #8e44ad;">Multi-Protocol Support</h3>
+                <p>ICMP Echo/Reply, DNS over UDP, raw UDP, and HTTP/TLS packet embedding.</p>
+                <h3 style="color: #8e44ad;">Reliable Delivery</h3>
+                <p>Sliding window protocol with ACK/NACK, CRC32 checksums, automatic retransmission.</p>
+                <h3 style="color: #8e44ad;">Session Management</h3>
+                <p>32-bit unique IDs, configurable timeouts (1000-2000ms), 3-5 retry attempts.</p>
+                <h3 style="color: #8e44ad;">IP Filtering</h3>
+                <p>Whitelist/blacklist with CIDR notation support for source validation.</p>
             </div>
 
-            <h2 style="color: #1abc9c; border-bottom: 2px solid #1abc9c; padding-bottom: 5px;">🎨 User Interface</h2>
-
+            <h2 style="color: #e74c3c; border-bottom: 2px solid #e74c3c; padding-bottom: 5px;">Data Handling</h2>
             <div style="margin: 20px 0;">
-                <h3 style="color: #1abc9c;">📑 Dual-Tab Interface</h3>
-                <p>Separate tabs for hiding and extracting data with intuitive controls.</p>
-
-                <h3 style="color: #1abc9c;">🖱️ Drag & Drop</h3>
-                <p>Simply drag image or audio files directly into the application.</p>
-
-                <h3 style="color: #1abc9c;">📋 Clipboard Integration</h3>
-                <p>One-click copying of extracted text to system clipboard.</p>
-
-                <h3 style="color: #1abc9c;">🔍 Image Selection Highlight</h3>
-                <p>Click on any preview to highlight it and see the file path in status bar.</p>
-
-                <h3 style="color: #1abc9c;">📊 Split Status Bar</h3>
-                <p>Real-time operation feedback and file path display.</p>
+                <h3 style="color: #e74c3c;">Text & File Input</h3>
+                <p>Hide plain text or any file type with automatic filename preservation.</p>
+                <h3 style="color: #e74c3c;">Smart Detection</h3>
+                <p>Automatic extraction detects text, files, binary, or encrypted data.</p>
+                <h3 style="color: #e74c3c;">Format Validation</h3>
+                <p>Auto-detect text vs binary with warnings for incompatible formats.</p>
             </div>
 
-            <h2 style="color: #16a085; border-bottom: 2px solid #16a085; padding-bottom: 5px;">🔧 Technical Highlights</h2>
-
+            <h2 style="color: #e74c3c; border-bottom: 2px solid #e74c3c; padding-bottom: 5px;">Security Features</h2>
             <div style="margin: 20px 0;">
-                <h3 style="color: #16a085;">🧩 Modular Engine Design</h3>
-                <p>Separate steganography engines for images and audio with clean abstraction.</p>
+                <h3 style="color: #e74c3c;">AES-256-CBC Encryption</h3>
+                <p>PBKDF2 key derivation (100,000 iterations) with random 16-byte salt.</p>
+                <h3 style="color: #e74c3c;">Multi-Layer Security</h3>
+                <p>Compose text steg + encryption + network steg + TLS for triple protection.</p>
+                <h3 style="color: #e74c3c;">Passphrase Memory</h3>
+                <p>Session-based passphrase caching for convenience.</p>
+            </div>
 
-                <h3 style="color: #16a085;">🎯 FFmpeg Integration</h3>
-                <p>Professional-grade audio conversion and metadata extraction.</p>
+            <h2 style="color: #1abc9c; border-bottom: 2px solid #1abc9c; padding-bottom: 5px;">User Interface</h2>
+            <div style="margin: 20px 0;">
+                <h3 style="color: #1abc9c;">Multi-Tab Interface</h3>
+                <p>Separate tabs for image, audio, text steganography and extraction.</p>
+                <h3 style="color: #1abc9c;">Drag & Drop</h3>
+                <p>Direct file input for images, audio, and text files.</p>
+                <h3 style="color: #1abc9c;">Clipboard Integration</h3>
+                <p>One-click copy/paste for text and extracted data.</p>
+                <h3 style="color: #1abc9c;">Progress Tracking</h3>
+                <p>Real-time operation feedback with status messages.</p>
+            </div>
 
-                <h3 style="color: #16a085;">💾 Persistent Paths</h3>
-                <p>Smart directory fallbacks (Pictures → Images, Music → AppDir).</p>
-
-                <h3 style="color: #16a085;">⚡ Multi-threaded Saving</h3>
-                <p>Non-blocking file operations with progress feedback.</p>
-
-                <h3 style="color: #16a085;">📁 Organized Output</h3>
-                <p>Automatic timestamped filenames for stego images and extracted data.</p>
+            <h2 style="color: #16a085; border-bottom: 2px solid #16a085; padding-bottom: 5px;">Technical Highlights</h2>
+            <div style="margin: 20px 0;">
+                <h3 style="color: #16a085;">Modular Architecture</h3>
+                <p>Separate engines: image, audio, text steg, and ERTP network protocols.</p>
+                <h3 style="color: #16a085;">FFmpeg Integration</h3>
+                <p>Professional audio conversion and metadata extraction.</p>
+                <h3 style="color: #16a085;">Multi-Threaded Operations</h3>
+                <p>Non-blocking file I/O with progress callbacks.</p>
+                <h3 style="color: #16a085;">Cross-Platform</h3>
+                <p>Linux, Windows, macOS support with smart directory fallbacks.</p>
+                <h3 style="color: #16a085;">Timestamped Output</h3>
+                <p>Automatic unique filenames for stego and extracted files.</p>
             </div>
 
             <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center; margin-top: 30px;">
-                <h3 style="color: #2c3e50; margin-top: 0;">🌟 Silent Messenger</h3>
-                <p style="margin-bottom: 0;">Ermis blends classical steganography techniques with modern media support,
-                providing a versatile toolkit for privacy, digital watermarking, and covert communication.</p>
+                <h3 style="color: #2c3e50; margin-top: 0;">Silent Messenger</h3>
+                <p style="margin-bottom: 0;">Ermis combines classical steganography with modern media support and network protocols, enabling multi-layer covert communication through innocent-looking files and network traffic.</p>
             </div>
         </div>
     )";
 }
 
-
 QString HelpMenuDialog::getInstructionsContent()
 {
     return R"(
 <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #2c3e50;">
-    <h1 style="color: #3498db; text-align: center; margin-bottom: 20px;">🕊️ How to Use Ermis</h1>
+    <h1 style="color: #3498db; text-align: center; margin-bottom: 20px;">How to Use Ermis</h1>
 
     <div style="background-color: #ecf0f1; padding: 15px; border-radius: 8px; margin-bottom: 25px;">
-        <h2 style="color: #2c3e50; margin-top: 0;">🔍 Overview</h2>
-        <p>Ermis allows you to hide secret data inside innocent-looking image and audio files, and extract hidden data from such files. The application features two main modes: <strong>Image Steganography</strong> and <strong>Audio Steganography</strong>.</p>
+        <h2 style="color: #2c3e50; margin-top: 0;">Overview</h2>
+        <p>Ermis allows you to hide secret data inside innocent-looking image, audio, text, and network files, and extract hidden data from such files. The application features four main steganography modes: Image, Audio, Text, and Network (ERTP Protocol).</p>
     </div>
 
-    <h2 style="color: #9b59b6; border-bottom: 2px solid #9b59b6; padding-bottom: 5px;">🖼️ Hiding Data in Images</h2>
+    <h2 style="color: #9b59b6; border-bottom: 2px solid #9b59b6; padding-bottom: 5px;">Hiding Data in Images</h2>
 
     <div style="margin: 20px 0;">
         <h3 style="color: #e67e22;">Step 1: Select Carrier Image</h3>
-        <p>Click <strong>"Select Carrier Image"</strong> or drag & drop an image file (PNG, JPG, BMP) into the application. The image will appear in the left preview panel.</p>
+        <p>Click "Select Carrier Image" or drag and drop an image file (PNG, JPG, BMP) into the application. The image will appear in the left preview panel.</p>
 
         <h3 style="color: #e67e22;">Step 2: Choose Data Type</h3>
-        <p>Select either:</p>
-        <ul style="padding-left: 20px;">
-            <li><strong>Text Input</strong> — Type your secret message in the text area</li>
-            <li><strong>File Input</strong> — Browse and select any file to hide (documents, images, etc.)</li>
-        </ul>
+        <p>Select either Text Input to type your secret message, or File Input to browse and select any file to hide (documents, images, etc.).</p>
 
         <h3 style="color: #e67e22;">Step 3: Optional Encryption</h3>
-        <p>Check <strong>"Encrypt data"</strong> to protect your hidden information with a passphrase. You'll be prompted to enter and confirm your passphrase.</p>
+        <p>Check "Encrypt data" to protect your hidden content with a passphrase. Your content will be encrypted with AES-256 before being hidden in the image. You will be prompted to enter and confirm your passphrase.</p>
 
         <h3 style="color: #e67e22;">Step 4: Check Capacity</h3>
-        <p>The <strong>capacity indicator</strong> shows how much data can be hidden in the current image. Ensure your data size doesn't exceed the available space.</p>
+        <p>The capacity indicator shows how much data can be hidden in the current image. Ensure your data size does not exceed the available space.</p>
 
         <h3 style="color: #e67e22;">Step 5: Hide Data</h3>
-        <p>Click <strong>"Hide Data"</strong> to embed your information. The modified image will appear in the right preview panel.</p>
+        <p>Click "Hide Data" to embed your information. The modified image will appear in the right preview panel.</p>
 
         <h3 style="color: #e67e22;">Step 6: Save Stego Image</h3>
-        <p>Click <strong>"Save Modified Image"</strong> to save the image with hidden data. PNG format is recommended for best results.</p>
+        <p>Click "Save Modified Image" to save the image with hidden data. PNG format is recommended for best results.</p>
     </div>
 
-    <h2 style="color: #1abc9c; border-bottom: 2px solid #1abc9c; padding-bottom: 5px;">🎵 Hiding Data in Audio</h2>
+    <h2 style="color: #1abc9c; border-bottom: 2px solid #1abc9c; padding-bottom: 5px;">Hiding Data in Audio</h2>
 
     <div style="margin: 20px 0;">
         <h3 style="color: #e67e22;">Step 1: Enable Audio Mode</h3>
-        <p>Check the <strong>"AUDIO"</strong> checkbox in the top-right corner to switch to audio steganography mode.</p>
+        <p>Check the "AUDIO" checkbox in the top-right corner to switch to audio steganography mode.</p>
 
         <h3 style="color: #e67e22;">Step 2: Select Audio Carrier</h3>
-        <p>Click <strong>"Select Audio Carrier"</strong> or drag & drop an audio file (MP3, WAV, FLAC, OGG). Non-WAV files are automatically converted to WAV format.</p>
+        <p>Click "Select Audio Carrier" or drag and drop an audio file (MP3, WAV, FLAC, OGG). Non-WAV files are automatically converted to WAV format.</p>
 
         <h3 style="color: #e67e22;">Step 3-6: Same as Image Mode</h3>
         <p>Follow the same steps for data input, encryption, and hiding. The modified audio can be saved as a WAV file.</p>
 
         <div style="background-color: #e8f8f5; padding: 15px; border-radius: 8px; margin: 15px 0;">
-            <h3 style="color: #117a65; margin-top: 0;">🎚️ Audio Playback</h3>
-            <p>When an audio file is loaded, the built-in audio player appears at the bottom with controls for:</p>
-            <ul style="padding-left: 20px;">
-                <li><strong>Play/Pause/Stop</strong> — Control audio playback</li>
-                <li><strong>Volume Slider</strong> — Adjust volume level</li>
-                <li><strong>Progress Slider</strong> — Seek through the audio</li>
-                <li><strong>Time Display</strong> — Shows current position and total duration</li>
-            </ul>
+            <h3 style="color: #117a65; margin-top: 0;">Audio Playback</h3>
+            <p>When an audio file is loaded, the built-in audio player appears at the bottom with controls for Play/Pause/Stop, volume slider, progress bar, and time display.</p>
         </div>
     </div>
 
-    <h2 style="color: #8e44ad; border-bottom: 2px solid #8e44ad; padding-bottom: 5px;">📤 Extracting Hidden Data</h2>
+    <h2 style="color: #8e44ad; border-bottom: 2px solid #8e44ad; padding-bottom: 5px;">Hiding Data in Text</h2>
+
+    <div style="margin: 20px 0;">
+        <h3 style="color: #e67e22;">Step 1: Enter Cover Text</h3>
+        <p>Load or paste normal-looking text that will serve as the cover. This can be any paragraph, article, or document.</p>
+
+        <h3 style="color: #e67e22;">Step 2: Choose Secret Data</h3>
+        <p>Select Text Input to type a message, or File Input to hide any file type within the cover text.</p>
+
+        <h3 style="color: #e67e22;">Step 3: Check Capacity</h3>
+        <p>The capacity calculator shows available space. Capacity is approximately 1 bit per visible character in the cover text. Example: 100-character text holds about 12 bytes.</p>
+
+        <h3 style="color: #e67e22;">Step 4: Optional Encryption</h3>
+        <p>Check "Encrypt data" to encrypt your content before hiding it in the text. Your message will be encrypted with AES-256, then embedded as zero-width characters.</p>
+
+        <h3 style="color: #e67e22;">Step 5: Hide Data</h3>
+        <p>Click "Hide Data" to embed your content using zero-width Unicode characters (U+200B, U+200C). These characters are invisible to readers but contain your secret data.</p>
+
+        <h3 style="color: #e67e22;">Step 6: Save or Copy</h3>
+        <p>Save the text-with-hidden-data to a file or copy directly to clipboard for sharing.</p>
+
+        <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; margin: 15px 0;">
+            <h3 style="color: #856404; margin-top: 0;">Note on Zero-Width Characters</h3>
+            <p>Zero-width characters are invisible to human readers. However, some text editors and services may strip them. Always test extraction before relying on this method for critical data.</p>
+        </div>
+    </div>
+
+    <h2 style="color: #c0392b; border-bottom: 2px solid #c0392b; padding-bottom: 5px;">Network Steganography (ERTP)</h2>
+
+    <div style="margin: 20px 0;">
+        <h3 style="color: #e67e22;">Overview</h3>
+        <p>ERTP enables sending hidden data through network packets using four protocols: ICMP (appears as ping), DNS (appears as domain queries), UDP (direct packets), or HTTP/TLS (encrypted web traffic). The network packets themselves are legitimate - your content is embedded within them and optionally encrypted.</p>
+
+        <h3 style="color: #e67e22;">Critical: Pre-Connection Setup</h3>
+        <p style="background-color: #ffebee; border-left: 4px solid #e74c3c; padding: 10px; color: #b71c1c;"><b>Before connecting:</b> Peers must agree beforehand (via email, phone, or secure chat) on the protocol (ICMP/DNS/UDP/HTTPS) and port number to use. If behind a firewall: UDP/DNS users must port-forward the chosen port (TCP/UDP) from router to their LAN IP. ICMP users must enable ping in router settings. To get your public IP, use Tools menu "Get My IP" or a dynamic DNS service (dyn.com, no-ip.com), then share with your peer.</p>
+
+        <h3 style="color: #e67e22;">Step 1: Choose Protocol</h3>
+        <p>Select ICMP for network diagnostics cover, DNS for appearing as legitimate domain queries, UDP for speed-optimized transfers, or HTTP/TLS for maximum security.</p>
+
+        <h3 style="color: #e67e22;">Step 2: Enter Target</h3>
+        <p>Enter the target IP address or domain name. Optionally set the port number (default varies by protocol).</p>
+
+        <h3 style="color: #e67e22;">Step 3: Select Data</h3>
+        <p>Choose Text Input for messages or File Input for any file type. Maximum payload is 1400 bytes per packet.</p>
+
+        <h3 style="color: #e67e22;">Step 4: Optional Content Encryption</h3>
+        <p>Check "Encrypt" to encrypt your data content with AES-256 BEFORE it is embedded in the network packets. This adds an extra security layer. Your encrypted content will then be hidden inside the legitimate network packets.</p>
+
+        <h3 style="color: #e67e22;">Step 5: Send Data</h3>
+        <p>Click "Send" to transmit. Progress tracking shows packet transfer status. Data uses sliding window protocol for reliable delivery with automatic retransmission. Packets appear as legitimate network traffic to observers.</p>
+        <p style="background-color: #ffebee; border-left: 4px solid #e74c3c; padding: 10px; color: #b71c1c;"><b>Important:</b> Both sender and receiver must click "Start Listening" and use the same protocol and port number for successful data transfer.</p>
+
+        <h3 style="color: #e67e22;">Step 6: Receive Mode</h3>
+        <p>Enable "Listen" mode to receive hidden data from peers. Packets are received as normal network traffic, and your hidden content is extracted. If content was encrypted, you will be prompted for the passphrase to decrypt it.</p>
+
+        <div style="background-color: #e8f8f5; padding: 15px; border-radius: 8px; margin: 15px 0;">
+            <h3 style="color: #117a65; margin-top: 0;">IP Filtering</h3>
+            <p>Restrict data reception to specific IP addresses using whitelist/blacklist mode. CIDR notation supported for subnet filtering. Only packets from approved sources will be processed.</p>
+        </div>
+
+        <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; margin: 15px 0;">
+            <h3 style="color: #856404; margin-top: 0;">About Network Packets</h3>
+            <p>The network packets themselves are standard, legitimate packets (ICMP echo requests, DNS queries, etc.). Observers see normal network traffic. Your hidden content is embedded within these packets, and can optionally be encrypted. HTTP/TLS provides additional transport-layer encryption of the entire connection.</p>
+        </div>
+    </div>
+
+    <h2 style="color: #d35400; border-bottom: 2px solid #d35400; padding-bottom: 5px;">Multi-Layer Security</h2>
+
+    <div style="margin: 20px 0;">
+        <p>Combine steganography methods for maximum protection:</p>
+        <ol style="padding-left: 20px;">
+            <li>Write your secret message</li>
+            <li>Encrypt your content with AES-256 (content encryption)</li>
+            <li>Hide the encrypted content in text using zero-width characters (text steganography)</li>
+            <li>Send the text-with-hidden-encrypted-content via ERTP over HTTP/TLS</li>
+        </ol>
+        <p>This creates multiple layers: content encryption (AES-256), text steganography (zero-width), network steganography (ERTP packet embedding), and transport-layer encryption (TLS).</p>
+    </div>
+
+    <h2 style="color: #8e44ad; border-bottom: 2px solid #8e44ad; padding-bottom: 5px;">Extracting Hidden Data</h2>
 
     <div style="margin: 20px 0;">
         <h3 style="color: #e67e22;">Step 1: Load Stego File</h3>
-        <p>In the <strong>"Extract Data"</strong> tab, click <strong>"Open Image with Hidden Data"</strong> (or "Open Audio with Hidden Data" in audio mode) or drag & drop a stego file.</p>
+        <p>In the "Extract Data" tab, click "Open Image with Hidden Data" (or audio/text variant) or drag and drop a file containing hidden data.</p>
 
         <h3 style="color: #e67e22;">Step 2: Extract Data</h3>
-        <p>Click <strong>"Extract and Save Data to File"</strong>. Ermis automatically detects:</p>
-        <ul style="padding-left: 20px;">
-            <li>Whether the data is text or a file</li>
-            <li>If encryption was used (prompts for passphrase)</li>
-        </ul>
+        <p>Click "Extract Data". Ermis automatically detects whether the content is text, a file, or encrypted content. If your content was encrypted before hiding, you will be prompted for the passphrase to decrypt it.</p>
 
         <h3 style="color: #e67e22;">Step 3: Save Extracted Data</h3>
-        <p>Choose where to save the extracted content. If it's text, it will also appear in the preview panel.</p>
+        <p>Choose where to save the extracted content. If text, it also appears in the preview panel.</p>
 
         <h3 style="color: #e67e22;">Step 4: Copy to Clipboard (Optional)</h3>
-        <p>Click the <strong>"Clipboard Copy"</strong> button to copy extracted text directly to your system clipboard.</p>
+        <p>Click the clipboard button to copy extracted text directly to your system clipboard.</p>
 
         <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; margin: 15px 0;">
-            <h3 style="color: #856404; margin-top: 0;">📋 Note on Large Text</h3>
-            <p>If extracted text is very large, it may be saved to file but not displayed in the preview panel to prevent UI freezing. Check the saved file location for the complete content.</p>
+            <h3 style="color: #856404; margin-top: 0;">Large Text Handling</h3>
+            <p>If extracted text is very large, it may be saved to file but not displayed in the preview panel to prevent UI freezing. Check the saved file location for complete content.</p>
         </div>
     </div>
 
-    <h2 style="color: #27ae60; border-bottom: 2px solid #27ae60; padding-bottom: 5px;">🖱️ Drag & Drop Tips</h2>
+    <h2 style="color: #27ae60; border-bottom: 2px solid #27ae60; padding-bottom: 5px;">Image Preview Features</h2>
+
+    <div style="margin: 20px 0;">
+        <h3 style="color: #e67e22;">Right-Click Menu for Zoom</h3>
+        <p>Right-click any image preview to open the zoom and stretch menu. Use this to inspect the carrier or stego image in detail, zoom in/out, and pan across the image.</p>
+
+        <h3 style="color: #e67e22;">Click to Highlight</h3>
+        <p>Click any preview to highlight it and see the file path in the status bar.</p>
+
+        <h3 style="color: #e67e22;">Side-by-Side Comparison</h3>
+        <p>Original and modified images are displayed together for easy visual comparison.</p>
+    </div>
+
+    <h2 style="color: #2980b9; border-bottom: 2px solid #2980b9; padding-bottom: 5px;">Drag and Drop Tips</h2>
 
     <div style="margin: 20px 0;">
         <ul style="padding-left: 20px;">
-            <li><strong>Carrier files:</strong> Drag images or audio files to the Hide tab to load them automatically</li>
-            <li><strong>Stego files:</strong> Drag files with hidden data to the Extract tab for immediate extraction</li>
-            <li><strong>Auto-detection:</strong> Ermis automatically detects if a dropped file contains hidden data and switches to the appropriate tab</li>
-            <li><strong>Format support:</strong> PNG, JPG, BMP for images; MP3, WAV, FLAC, OGG for audio</li>
+            <li>Carrier files: Drag images or audio files to the Hide tab to load them automatically</li>
+            <li>Stego files: Drag files with hidden data to the Extract tab for immediate extraction</li>
+            <li>Auto-detection: Ermis automatically detects if a dropped file contains hidden data</li>
+            <li>Format support: PNG, JPG, BMP for images; MP3, WAV, FLAC, OGG for audio; TXT for text</li>
         </ul>
     </div>
 
-    <h2 style="color: #e74c3c; border-bottom: 2px solid #e74c3c; padding-bottom: 5px;">🔐 Encryption & Passphrases</h2>
+    <h2 style="color: #e74c3c; border-bottom: 2px solid #e74c3c; padding-bottom: 5px;">Content Encryption and Passphrases</h2>
 
     <div style="margin: 20px 0;">
         <h3 style="color: #e67e22;">When Hiding:</h3>
         <ul style="padding-left: 20px;">
-            <li>Check <strong>"Encrypt data"</strong> before hiding</li>
-            <li>Enter a passphrase in the dialog (minimum recommended: 8+ characters)</li>
-            <li>Optionally check <strong>"Remember passphrase for this session"</strong></li>
-            <li>Data is encrypted with AES before hiding</li>
+            <li>Check "Encrypt data" to encrypt your content BEFORE hiding it</li>
+            <li>Your content is encrypted with AES-256-CBC using PBKDF2 key derivation (100,000 iterations)</li>
+            <li>Enter a passphrase (minimum 8+ characters recommended)</li>
+            <li>Optionally check "Remember passphrase for this session"</li>
+            <li>The encrypted content is then hidden in the carrier (image, audio, text, or network packet)</li>
         </ul>
 
         <h3 style="color: #e67e22;">When Extracting:</h3>
         <ul style="padding-left: 20px;">
-            <li>If encrypted data is detected, you'll be prompted for the passphrase</li>
+            <li>If encrypted content is detected, you will be prompted for the passphrase</li>
             <li>Remembered passphrases are tried automatically</li>
-            <li>Decryption fails silently with wrong passphrases</li>
+            <li>Wrong passphrases will fail to decrypt the content</li>
         </ul>
+
+        <div style="background-color: #ffebee; padding: 15px; border-radius: 8px; margin: 15px 0;">
+            <h3 style="color: #c62828; margin-top: 0;">Critical: Lost Passphrases</h3>
+            <p>Lost or forgotten passphrases cannot recover encrypted content. Store passphrases securely and separately.</p>
+        </div>
     </div>
 
-    <h2 style="color: #16a085; border-bottom: 2px solid #16a085; padding-bottom: 5px;">📊 Understanding Capacity</h2>
+    <h2 style="color: #16a085; border-bottom: 2px solid #16a085; padding-bottom: 5px;">Understanding Capacity</h2>
 
     <div style="margin: 20px 0;">
-        <p>The <strong>capacity indicator</strong> shows:</p>
+        <p>The capacity indicator shows:</p>
         <ul style="padding-left: 20px;">
-            <li><strong>Current data size</strong> — Based on your text or selected file</li>
-            <li><strong>Maximum capacity</strong> — Available space in the carrier file</li>
-            <li><strong>Percentage</strong> — How much of the available space you're using</li>
+            <li>Current data size based on your content or selected file</li>
+            <li>Maximum capacity available in the carrier file or network packets</li>
+            <li>Percentage showing how much space you are using</li>
         </ul>
-        <p><strong>Image capacity</strong> depends on image dimensions and color depth.<br>
-        <strong>Audio capacity</strong> depends on duration, sample rate, channels, and bit depth.</p>
+        <p>Image capacity depends on dimensions and color depth. Audio capacity depends on duration, sample rate, channels, and bit depth. Text capacity depends on cover text length. Network packets support up to 1400 bytes per packet with sliding window protocol.</p>
     </div>
 
-    <h2 style="color: #f1c40f; border-bottom: 2px solid #f1c40f; padding-bottom: 5px;">👁️ Image Preview Features</h2>
+    <h2 style="color: #f1c40f; border-bottom: 2px solid #f1c40f; padding-bottom: 5px;">Reset Function</h2>
 
     <div style="margin: 20px 0;">
+        <p>Click the "Reset" button in the Hide tab to:</p>
         <ul style="padding-left: 20px;">
-            <li><strong>Click to highlight</strong> — Click any preview to highlight it and see the file path in status bar</li>
-            <li><strong>Zoom & Pan</strong> — Use mouse wheel to zoom, click and drag to pan (if implemented)</li>
-            <li><strong>Side-by-side comparison</strong> — Original and modified images displayed together</li>
-        </ul>
-    </div>
-
-    <h2 style="color: #95a5a6; border-bottom: 2px solid #95a5a6; padding-bottom: 5px;">🔄 Reset Function</h2>
-
-    <div style="margin: 20px 0;">
-        <p>Click the <strong>"Reset"</strong> button in the Hide tab to:</p>
-        <ul style="padding-left: 20px;">
-            <li>Clear all image previews and loaded files</li>
+            <li>Clear all image and audio previews</li>
             <li>Reset input fields and radio buttons</li>
             <li>Clear extracted data and stego images</li>
             <li>Clear remembered passphrases</li>
@@ -755,32 +838,34 @@ QString HelpMenuDialog::getInstructionsContent()
     </div>
 
     <div style="background-color: #ffebee; border: 2px solid #f44336; padding: 20px; border-radius: 8px; margin: 25px 0;">
-        <h3 style="color: #c62828; text-align: center; margin-top: 0;">⚖️ Legal & Ethical Notice</h3>
-        <p style="font-weight: bold; text-align: center; color: #b71c1c;">
-            Ermis is designed for legitimate purposes only.
-        </p>
+        <h3 style="color: #c62828; text-align: center; margin-top: 0;">Legal and Ethical Notice</h3>
+        <p style="text-align: center; color: #b71c1c;">Ermis is designed for legitimate purposes only.</p>
         <ul style="padding-left: 20px; color: #b71c1c;">
-            <li><strong>Privacy</strong> — Protect your personal information</li>
-            <li><strong>Digital watermarking</strong> — Mark your creative works</li>
-            <li><strong>Educational use</strong> — Learn about steganography techniques</li>
-            <li><strong>Authorized communication only</strong> — Respect laws and regulations</li>
+            <li>Privacy: Protect your personal information</li>
+            <li>Digital watermarking: Mark your creative works</li>
+            <li>Educational use: Learn about steganography techniques</li>
+            <li>Authorized communication only: Respect laws and regulations</li>
         </ul>
         <p style="margin-bottom: 0; color: #b71c1c;">Users are solely responsible for compliance with applicable laws in their jurisdiction.</p>
     </div>
 
     <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center; margin-top: 30px;">
-        <h3 style="color: #2c3e50; margin-top: 0;">🌟 Quick Tips</h3>
+        <h3 style="color: #2c3e50; margin-top: 0;">Quick Tips</h3>
         <ul style="text-align: left; padding-left: 40px;">
-            <li><strong>Always test</strong> — Verify extraction works before relying on hidden data</li>
-            <li><strong>Use PNG for images</strong> — Lossless format preserves hidden data perfectly</li>
-            <li><strong>Remember passphrases</strong> — Lost passphrases cannot recover encrypted data</li>
-            <li><strong>Check capacity first</strong> — Avoid wasting time on files too small for your data</li>
-            <li><strong>File names are preserved</strong> — When hiding files, original filenames are stored and recovered</li>
+            <li>Always test extraction before relying on hidden data</li>
+            <li>Use PNG for images as it preserves hidden data perfectly</li>
+            <li>Remember passphrases - lost passphrases cannot recover encrypted content</li>
+            <li>Check capacity first to avoid wasting time on files too small</li>
+            <li>File names are preserved when hiding files - recovered automatically</li>
+            <li>Text steganography works best with longer cover text for better capacity</li>
+            <li>Network steganography adapts to your environment - choose the least-filtered protocol</li>
+            <li>Network packets appear as legitimate traffic - observers see only normal ICMP, DNS, UDP, or HTTPS</li>
         </ul>
     </div>
 </div>
     )";
 }
+
 
 QString HelpMenuDialog::getSecurityContent()
 {
@@ -1656,41 +1741,77 @@ QString HelpMenuDialog::getChangelogContent()
 {
     return QString(
         "<div style='font-family: Arial, sans-serif; line-height: 1.6; color: #2c3e50;'>"
-        "<h2 style='color: #8e44ad; text-align: center; margin-bottom: 25px;'>📜 Ermis Changelog</h2>"
+        "<h2 style='color: #8e44ad; text-align: center; margin-bottom: 25px;'>Ermis Changelog</h2>"
+
+        "<h4 style='color: #c0392b; border-bottom: 2px solid #c0392b; padding-bottom: 5px; margin-top: 25px;'>[v1.1.0] - 2026-03-27</h4>"
+        "<ul style='margin-bottom: 20px;'>"
+        "<li><b>Network Steganography (ERTP):</b> Hide data in ICMP, DNS, UDP, and HTTP/TLS packets</li>"
+        "<li><b>Text Steganography:</b> Zero-width Unicode character encoding for invisible message hiding</li>"
+        "<li><b>Multi-Protocol Support:</b> Choose ICMP (ping cover), DNS (domain masquerading), UDP (speed), or HTTPS (security)</li>"
+        "<li><b>Reliable Packet Delivery:</b> Sliding window protocol with ACK/NACK, CRC32 checksums, automatic retransmission</li>"
+        "<li><b>Content Encryption:</b> AES-256-CBC with PBKDF2 key derivation (100,000 iterations) for all steganography modes</li>"
+        "<li><b>IP Filtering:</b> Whitelist/blacklist filtering with CIDR notation support for source validation</li>"
+        "<li><b>Session Management:</b> 32-bit unique IDs, configurable timeouts (1000-2000ms), 3-5 retry attempts</li>"
+        "<li><b>Text Steganography UI:</b> Dedicated tab with cover text input, capacity calculator, zero-width encoding</li>"
+        "<li><b>Multi-Layer Security:</b> Combine text steg + content encryption + network steg + TLS for triple protection</li>"
+        "<li><b>Auto Format Detection:</b> Intelligent text/binary detection during extraction with user warnings</li>"
+        "<li><b>Network Transfer Tracking:</b> Real-time progress indicators for sending and receiving data</li>"
+        "<li><b>Maximum Payload:</b> 1400 bytes per network packet with session-based reassembly</li>"
+        "</ul>"
 
         "<h4 style='color: #3498db; border-bottom: 2px solid #3498db; padding-bottom: 5px; margin-top: 25px;'>[v1.0.0] - 2026-03-15</h4>"
         "<ul style='margin-bottom: 20px;'>"
-        "<li><b>🎉 Initial Release:</b> Ermis Steganography Tool</li>"
-        "<li><b>🖼️ Image Steganography:</b> Hide data in PNG, JPG, BMP using LSB techniques with live preview</li>"
-        "<li><b>🎵 Audio Steganography:</b> Support for WAV, MP3, FLAC, OGG with FFmpeg conversion</li>"
-        "<li><b>📝 Dual Input Modes:</b> Text input and file hiding with filename preservation</li>"
-        "<li><b>🔒 AES Encryption:</b> Optional passphrase protection with ENCR marker detection</li>"
-        "<li><b>🖱️ Drag & Drop:</b> Intuitive file loading by dragging directly into the application</li>"
-        "<li><b>📋 Clipboard Integration:</b> One-click copying of extracted text</li>"
-        "<li><b>📊 Capacity Indicator:</b> Real-time display of available hiding space</li>"
-        "<li><b>🎚️ Audio Player:</b> Built-in playback controls for loaded audio files</li>"
-        "<li><b>🔍 Smart Extraction:</b> Auto-detects encryption, file type, and text content</li>"
-        "<li><b>💾 Persistent Paths:</b> Smart directory fallbacks (Pictures → Images, Music → AppDir)</li>"
-        "<li><b>🧩 Modular Engine Design:</b> Separate steganography engines for images and audio</li>"
-        "<li><b>🌍 Cross-Platform:</b> Available for Linux, Windows, and macOS</li>"
+        "<li><b>Initial Release:</b> Ermis Steganography Tool</li>"
+        "<li><b>Image Steganography:</b> Hide data in PNG, JPG, BMP using LSB techniques with live preview</li>"
+        "<li><b>Audio Steganography:</b> Support for WAV, MP3, FLAC, OGG with FFmpeg conversion</li>"
+        "<li><b>Dual Input Modes:</b> Text input and file hiding with filename preservation</li>"
+        "<li><b>Content Encryption:</b> Optional AES passphrase protection with automatic detection</li>"
+        "<li><b>Drag & Drop:</b> Intuitive file loading by dragging directly into the application</li>"
+        "<li><b>Clipboard Integration:</b> One-click copying of extracted text</li>"
+        "<li><b>Capacity Indicator:</b> Real-time display of available hiding space</li>"
+        "<li><b>Audio Player:</b> Built-in playback controls for loaded audio files</li>"
+        "<li><b>Smart Extraction:</b> Auto-detects encryption, file type, and text content</li>"
+        "<li><b>Persistent Paths:</b> Smart directory fallbacks (Pictures -> Images, Music -> AppDir)</li>"
+        "<li><b>Modular Engine Design:</b> Separate steganography engines for images and audio</li>"
+        "<li><b>Cross-Platform:</b> Available for Linux, Windows, and macOS</li>"
         "</ul>"
 
-        "<div style='background-color: #ecf0f1; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center;'>"
-        "<p style='margin: 0; color: #7f8c8d;'>"
-        "<strong>Built with:</strong> Qt 6 Framework + FFmpeg • "
-        "<strong>License:</strong> MIT • "
-        "<strong>Repository:</strong> <a href='https://github.com/alamahant/Ermis'>github.com/alamahant/Ermis</a>"
+        "<div style='background-color: #ecf0f1; padding: 15px; border-radius: 8px; margin: 20px 0;'>"
+        "<h4 style='color: #2c3e50; margin-top: 0; text-align: center;'>Version Highlights</h4>"
+        "<p style='margin-bottom: 10px;'><b>v1.1.0 New:</b> Network steganography across 4 protocols with reliable delivery, text steganography using zero-width characters, content encryption with PBKDF2, multi-layer security composition, IP filtering with CIDR support.</p>"
+        "<p style='margin: 0;'><b>v1.0.0 Foundation:</b> Media steganography (image and audio), content encryption, intuitive UI with drag-and-drop, automatic file type detection, modular engine architecture.</p>"
+        "</div>"
+
+        "<div style='background-color: #e8f8f5; padding: 15px; border-radius: 8px; margin: 20px 0;'>"
+        "<p style='margin: 0; color: #117a65;'>"
+        "<b>Built with:</b> Qt 6 Framework + FFmpeg + OpenSSL • "
+        "<b>License:</b> GPL-3.0 • "
+        "<b>Copyright:</b> 2026 Alamahant • "
+        "<b>Repository:</b> <a href='https://github.com/alamahant/Ermis'>github.com/alamahant/Ermis</a>"
         "</p>"
         "</div>"
 
         "<div style='background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 30px;'>"
-        "<h4 style='color: #2c3e50; margin-top: 0;'>🔮 Planned for Future Releases</h4>"
+        "<h4 style='color: #2c3e50; margin-top: 0;'>Planned for Future Releases</h4>"
         "<ul style='margin-bottom: 0;'>"
-        "<li><b>Video Steganography:</b> Hide data in video files</li>"
-        "<li><b>Batch Processing:</b> Hide/extract multiple files at once</li>"
-        "<li><b>Steganalysis Tools:</b> Detect hidden data in suspicious files</li>"
-        "<li><b>More Encryption Algorithms:</b> Additional cipher options</li>"
-        "<li><b>Plugin System:</b> Extensible architecture for custom algorithms</li>"
+        "<li><b>Video Steganography:</b> Hide data in video files with codec support</li>"
+        "<li><b>Batch Processing:</b> Hide/extract multiple files in single operation</li>"
+        "<li><b>Steganalysis Tools:</b> Detect and analyze hidden data in suspicious files</li>"
+        "<li><b>Additional Ciphers:</b> ChaCha20, Twofish, and other encryption algorithms</li>"
+        "<li><b>Digital Signatures:</b> Authentication and integrity verification for hidden content</li>"
+        "<li><b>Plugin Architecture:</b> Extensible system for custom steganography algorithms</li>"
+        "<li><b>Cloud Integration:</b> Direct upload/download of stego files to cloud storage</li>"
+        "</ul>"
+        "</div>"
+
+        "<div style='background-color: #fff3cd; padding: 15px; border-radius: 8px; margin-top: 30px;'>"
+        "<h4 style='color: #856404; margin-top: 0;'>Technical Notes</h4>"
+        "<ul style='margin-bottom: 0;'>"
+        "<li><b>Content Encryption:</b> All steganography modes support optional AES-256-CBC encryption of the hidden content before embedding</li>"
+        "<li><b>Network Packets:</b> ERTP packets are legitimate network traffic (ICMP echo, DNS queries, UDP datagrams, HTTPS). Only the embedded content can be optionally encrypted</li>"
+        "<li><b>Zero-Width Characters:</b> Text steganography uses U+200B (Zero Width Space) for 0 and U+200C (Zero Width Non-Joiner) for 1 in binary encoding</li>"
+        "<li><b>Session Management:</b> Network transfers use sliding window protocol with automatic retransmission and CRC32 validation</li>"
+        "<li><b>PBKDF2 Derivation:</b> Key stretching uses 100,000 iterations for content encryption, providing OWASP-compliant key hardening</li>"
         "</ul>"
         "</div>"
         "</div>"

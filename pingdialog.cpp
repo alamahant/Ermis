@@ -80,6 +80,7 @@ PingDialog::PingDialog(QWidget *parent)
                 // ===== END HTTP CONNECTIONS =====
     
     // Load saved target IPs
+    QSettings settings;
     QStringList targets = settings.value("ping/targetHistory").toStringList();
     m_targetHistoryCombo->addItems(targets);
     
@@ -593,28 +594,37 @@ void PingDialog::onBrowseFile()
     }
 }
 
-// ===== RECEIVE TAB SLOTS =====
-/*
-void PingDialog::onStartListening()
-{
-    if (m_engine->startListening()) {
-        addToLog(" Started listening for ICMP messages");
-        m_listenBtn->setEnabled(false);
-        m_stopBtn->setEnabled(true);
-        m_listenStatusLabel->setText("Listening...");
-        m_listenStatusLabel->setStyleSheet("color: green; font-weight: bold;");
-    } else {
-        QMessageBox::warning(this, "Error", 
-            "Failed to start listening.\n\n"
-            "Raw socket access requires root privileges.\n"
-            "Run with: sudo ./Ermis\n"
-            "Or set: sudo setcap cap_net_raw+ep ./Ermis");
-    }
-}
-*/
 
 void PingDialog::onStartListening()
 {
+#ifdef FLATPAK_BUILD
+    if (Constants::currentReceiverProtocol == Constants::ICMP) {
+        QMessageBox msgBox;
+        msgBox.setWindowTitle("ICMP Protocol Warning");
+        msgBox.setText(
+            "ICMP (ping) protocol requires access to raw sockets.\n\n"
+            "Due to Flatpak sandbox restrictions, raw socket access is difficult to grant.\n\n"
+            "For better compatibility in Flatpak, you can safely use:\n"
+            "  • UDP protocol\n"
+            "  • DNS protocol\n"
+            "  • HTTP/HTTPS steganography protocols\n\n"
+            "These protocols work without special permissions.\n\n"
+            "Do you want to continue with ICMP anyway?"
+        );
+        msgBox.setIcon(QMessageBox::Warning);
+
+        QPushButton *continueButton = msgBox.addButton("Continue Anyway", QMessageBox::AcceptRole);
+        QPushButton *cancelButton = msgBox.addButton("Cancel", QMessageBox::RejectRole);
+        msgBox.setDefaultButton(cancelButton);
+
+        msgBox.exec();
+
+        if (msgBox.clickedButton() != continueButton) {
+            return; // User cancelled
+        }
+    }
+#endif
+
     bool success = false;
 
     if (Constants::currentReceiverProtocol == Constants::UDP) {
@@ -755,75 +765,6 @@ void PingDialog::updateSendButtonState()
     }
 }
 
-/*
-void PingDialog::onClearAll()
-{
-
-    if (m_receivedFilesList)
-        m_receivedFilesList->blockSignals(true);
-
-    // --- FORCE RESET ALL NETWORK ENGINES ---
-    m_engine->forceReset();
-    udpEngine->forceReset();
-    dnsEngine->forceReset();
-
-    // --- BLOCK UI SIGNALS ---
-    if (m_receivedFilesList)
-        m_receivedFilesList->blockSignals(true);
-
-    // --- CLEAR UI ELEMENTS ---
-    if (m_logDisplay) {
-        m_logDisplay->clear();
-    }
-
-    if (m_receivedFilesList) {
-        m_receivedFilesList->clear();  // removes all QListWidgetItems safely
-    }
-
-    if (m_saveSelectedBtn) {
-        m_saveSelectedBtn->setEnabled(false);
-    }
-
-    if (m_receiveProgress) {
-        //m_receiveProgress->reset();
-    }
-
-    if (m_sendProgress) {
-        m_sendProgress->reset();
-        m_sendProgress->setVisible(false);
-    }
-
-    if (m_sendStatusLabel) {
-        m_sendStatusLabel->clear();
-    }
-
-    if (m_listenStatusLabel) {
-        m_listenStatusLabel->setText("Not listening");
-    }
-
-
-    if (m_receivedTextEdit) {
-        m_receivedTextEdit->clear();
-    }
-
-    // --- CLEAR UNDERLYING DATA ---
-    m_lastReceivedData.clear();
-    m_lastReceivedSource.clear();
-
-    // --- UNBLOCK SIGNALS ---
-    if (m_receivedFilesList)
-        m_receivedFilesList->blockSignals(false);
-
-    // --- UPDATE BUTTON STATES ---
-    updateSendButtonState();
-
-    if (m_logDisplay)
-        addToLog(" All received data cleared");
-
-    if(m_receivedTextEdit)
-        m_textInput->clear();
-}
-*/
 
 void PingDialog::onClearAll()
 {
@@ -984,7 +925,7 @@ void PingDialog::onFileReceived(const QString& path, const QString& source)
     item->setData(Qt::UserRole, path);              // Store full path for saving
     item->setData(Qt::UserRole + 1, source);        // Store sender IP
     item->setData(Qt::UserRole + 2, info.fileName()); // Store original filename
-    item->setIcon(QIcon(":/icons/file.png"));
+    //item->setIcon(QIcon(":/icons/file.png"));
     m_receivedFilesList->addItem(item);
 
     // Enable the save button
@@ -1016,8 +957,6 @@ void PingDialog::onEncryptToggled(bool checked)
             httpEngine->setEncryptionKey(passphrase);
 
         }
-
-
 
             if (dialog.rememberPassphrase()) {
                 // Store in dialog if you want, but engine has it
@@ -1069,7 +1008,7 @@ void PingDialog::onDataReceived(const QByteArray& data, const QString& source)
             QByteArray text = payload.mid(4);
             QString timestamp = QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss");
             QString savePath = Constants::ermistmpPath + "/" +
-            QString("text_%1.txt").arg(timestamp);
+            QString("text_%1.txt   (%3)").arg(timestamp).arg(source);
             m_receivedTextEdit->setPlainText(QString::fromUtf8(text));  // Use 'text', not 'payload'
             QFile file(savePath);
             if (file.open(QIODevice::WriteOnly)) {
@@ -1111,9 +1050,9 @@ void PingDialog::onDataReceived(const QByteArray& data, const QString& source)
         }
 
         QString savePath = Constants::ermistmpPath + "/" +
-        QString("ermis_%1_%2")
+        QString("ermis_%1_%2   (%3)")
         .arg(QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss"))
-        .arg(filename);
+        .arg(filename.arg(source));
 
 
         QFile file(savePath);
@@ -1178,7 +1117,7 @@ void PingDialog::populateListWidgetFromTmp()
         QListWidgetItem* item = new QListWidgetItem(fileName);
         item->setData(Qt::UserRole, filePath);       // store full path
         item->setData(Qt::UserRole + 2, fileName);   // store original filename
-        item->setIcon(QIcon(":/icons/file.png"));    // optional file icon
+        //item->setIcon(QIcon(":/icons/file.png"));
         m_receivedFilesList->addItem(item);
 
 

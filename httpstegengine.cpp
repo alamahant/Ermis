@@ -9,9 +9,6 @@ HTTPStegEngine::HTTPStegEngine(QObject *parent) : QObject(parent){
             certPath = Constants::sslPath + "/stegserver.crt";
             keyPath  = Constants::sslPath + "/stegserver.key";
             ensureSelfSignedCert(certPath, keyPath, "mystegserver");
-
-
-
 }
 
 HTTPStegEngine::~HTTPStegEngine() {
@@ -20,17 +17,6 @@ HTTPStegEngine::~HTTPStegEngine() {
     cleanupSendSocket();
 }
 
-
-// ------------ Server listen/startup ----------------
-
-
-
-// ------------ Server: Accept -----------------
-
-
-// ------------ Receiving HTTP-Style Chunks -------------
-
-// ------------ Assemble file/text chunk, NO app-level crypto! -------------
 void HTTPStegEngine::assembleFile(quint32 sessionId, const QString& sourceIp)
 {
     auto& session = m_receiveSessions[sessionId];
@@ -137,11 +123,6 @@ bool HTTPStegEngine::sendData(const QString& targetIp, const QByteArray& data, q
     return true;
 }
 
-// ------------ Outbound HTTP chunk send logic --------------------------
-
-
-
-
 void HTTPStegEngine::cleanupSendSocket()
 {
     if (m_currentSession.socket) {
@@ -174,9 +155,6 @@ void HTTPStegEngine::forceReset()
     m_cancelled = false;
 }
 
-
-/////////////
-
 bool HTTPStegEngine::startListeningInternal(quint16 port, const QString &certPath, const QString &keyPath) {
     stopListening();
     m_server = new QSslServer(this);
@@ -198,10 +176,8 @@ void HTTPStegEngine::ensureSelfSignedCert(const QString &certPath, const QString
     QFile cert(certPath);
     QFile key(keyPath);
     if (cert.exists() && key.exists()) {
-        qDebug() << "[HTTPStegEngine] SSL certificate and key already exist:" << certPath << keyPath;
         return;
     }
-    qDebug() << "[HTTPStegEngine] Generating self-signed SSL cert/key via OpenSSL...";
     QStringList args;
     args << "req" << "-x509"
          << "-newkey" << "rsa:2048"
@@ -218,7 +194,6 @@ void HTTPStegEngine::ensureSelfSignedCert(const QString &certPath, const QString
     }
     QByteArray err = proc.readAllStandardError();
     if (proc.exitCode() == 0) {
-        qDebug() << "[HTTPStegEngine] OpenSSL cert/key generated.";
     } else {
         qWarning() << "[HTTPStegEngine] OpenSSL failed:" << err;
     }
@@ -237,40 +212,6 @@ void HTTPStegEngine::stopListening() {
     m_listening = false;
 }
 
-// --- Accept connection ---
-/*
-void HTTPStegEngine::onNewConnection() {
-    while (m_server->hasPendingConnections()) {
-        QTcpSocket *raw = m_server->nextPendingConnection();
-        QSslSocket *sslSocket = new QSslSocket(this);
-
-
-
-        bool setOk = sslSocket->setSocketDescriptor(raw->socketDescriptor());
-        sslSocket->setLocalCertificate(certPath);
-        sslSocket->setPrivateKey(keyPath);
-        sslSocket->setPeerVerifyMode(QSslSocket::VerifyNone);
-        connect(sslSocket, &QSslSocket::encrypted, this, &HTTPStegEngine::onPeerEncrypted);
-
-        // Debug all relevant error/state signals
-        connect(sslSocket, &QSslSocket::sslErrors, this, [sslSocket](const QList<QSslError>& errors){
-            for (const QSslError &e : errors)
-                qWarning() << "[HTTPStegEngine][SERVER][SSL ERROR]" << e.errorString();
-        });
-        connect(sslSocket, QOverload<QAbstractSocket::SocketError>::of(&QSslSocket::errorOccurred),
-                this, [sslSocket](QAbstractSocket::SocketError e){
-            qWarning() << "[HTTPStegEngine][SERVER][Socket error]" << e << sslSocket->errorString();
-        });
-        connect(sslSocket, &QSslSocket::stateChanged, this, [sslSocket](QAbstractSocket::SocketState s){
-        });
-
-        sslSocket->startServerEncryption();
-        raw->deleteLater();
-        //connect(sslSocket, &QSslSocket::disconnected, raw, &QObject::deleteLater);
-
-    }
-}
-*/
 
 void HTTPStegEngine::onNewConnection() {
     while (m_server->hasPendingConnections()) {

@@ -15,9 +15,9 @@ const QString fusedImagesPath = appDirPath + "/fused";
 const QString extractedImagesPath = appDirPath + "/extracted";
 const QString picturesPath = QStandardPaths::writableLocation(QStandardPaths::PicturesLocation);
 const QString musicPath = QStandardPaths::writableLocation(QStandardPaths::MusicLocation);
- const QString receivedICMPPath = appDirPath + "/ICMP";
- const QString ermistmpPath = QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/Ermis";
- const QString sslPath = appDirPath + "/.ssl";
+const QString receivedICMPPath = appDirPath + "/Network";
+const QString ermistmpPath = QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/Ermis";
+const QString sslPath = appDirPath + "/.ssl";
 
 bool isCameraOn = false;
 
