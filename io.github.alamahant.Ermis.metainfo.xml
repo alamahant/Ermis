@@ -72,12 +72,32 @@
   <url type="homepage">https://github.com/alamahant/Ermis</url>
   <url type="bugtracker">https://github.com/alamahant/Ermis/issues</url>
 
-  <screenshots>
-    <screenshot type="default">
-      <caption>Main interface with image steganography mode</caption>
-      <image>https://raw.githubusercontent.com/alamahant/Ermis/master/screenshots/main.png</image>
-    </screenshot>
-  </screenshots>
+<screenshots>
+  <screenshot type="default">
+    <caption>Main interface with image steganography mode</caption>
+    <image>https://raw.githubusercontent.com/alamahant/Ermis/master/screenshots/Main.png</image>
+  </screenshot>
+  <screenshot>
+    <caption>Dark theme interface with purple accent colors</caption>
+    <image>https://raw.githubusercontent.com/alamahant/Ermis/master/screenshots/dark-theme.png</image>
+  </screenshot>
+  <screenshot>
+    <caption>Network and Text Steganography Dialogs</caption>
+    <image>https://raw.githubusercontent.com/alamahant/Ermis/master/screenshots/text-network-steg.png</image>
+  </screenshot>
+  <screenshot>
+    <caption>Audio steganography interface with carrier and modified markers</caption>
+    <image>https://raw.githubusercontent.com/alamahant/Ermis/master/screenshots/audio_mode.png</image>
+  </screenshot>
+  <screenshot>
+    <caption>Extract tab for retrieving hidden data</caption>
+    <image>https://raw.githubusercontent.com/alamahant/Ermis/master/screenshots/extract-tab.png</image>
+  </screenshot>
+  <screenshot>
+    <caption>Extracted from audio and built-in player</caption>
+    <image>https://raw.githubusercontent.com/alamahant/Ermis/master/screenshots/extracted-audio-with-player.png</image>
+  </screenshot>
+</screenshots>
 
   <releases>
 
