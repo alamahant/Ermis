@@ -587,7 +587,7 @@ void PingDialog::onSendFile()
 void PingDialog::onBrowseFile()
 {
     QString filePath = QFileDialog::getOpenFileName(this, 
-        "Select File to Send", QDir::homePath());
+        "Select File to Send", Constants::appDirPath);
     if (!filePath.isEmpty()) {
         m_filePathEdit->setText(filePath);
         updateSendButtonState();  // Update button state after file selection
@@ -1008,7 +1008,7 @@ void PingDialog::onDataReceived(const QByteArray& data, const QString& source)
             QByteArray text = payload.mid(4);
             QString timestamp = QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss");
             QString savePath = Constants::ermistmpPath + "/" +
-            QString("text_%1.txt   (%3)").arg(timestamp).arg(source);
+            QString("text_%1.txt   (%2)").arg(timestamp).arg(source);
             m_receivedTextEdit->setPlainText(QString::fromUtf8(text));  // Use 'text', not 'payload'
             QFile file(savePath);
             if (file.open(QIODevice::WriteOnly)) {
@@ -1050,7 +1050,7 @@ void PingDialog::onDataReceived(const QByteArray& data, const QString& source)
         }
 
         QString savePath = Constants::ermistmpPath + "/" +
-        QString("ermis_%1_%2   (%3)")
+        QString("ermis_%1_%2")
         .arg(QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss"))
         .arg(filename.arg(source));
 

@@ -2833,6 +2833,43 @@ void MainWindow::onCameraButtonClicked()
 
     void MainWindow::onOpenPingDialog()
     {
+
+#ifdef FLATPAK_BUILD
+    QSettings settings;
+
+    // Check if user chose "Do not show again"
+    if (!settings.value("flatpakNetworkWarning/doNotShow", false).toBool()) {
+        QMessageBox msgBox;
+        msgBox.setWindowTitle("Flatpak Sandbox Notice");
+        msgBox.setText(
+            "Due to Flatpak sandbox restrictions, you may not be able to send files residing\n"
+            "outside the Ermis data directory.\n\n"
+            "For best results, place files you want to send via network steganography in:\n"
+            + Constants::appDirPath + "\n\n"
+            "To grant home directory access for more flexibility:\n\n"
+            "Option 1 - Terminal:\n"
+            "  flatpak override --user --filesystem=home io.github.alamahant.Ermis\n\n"
+            "Option 2 - Flatseal:\n"
+            "  Install Flatseal from Flathub and grant 'Home' access to Ermis.\n\n"
+            "After granting access, restart Ermis."
+        );
+        msgBox.setIcon(QMessageBox::Information);
+
+        QCheckBox *doNotShowCheckBox = new QCheckBox("Do not show this again");
+        msgBox.setCheckBox(doNotShowCheckBox);
+
+        QPushButton *okButton = msgBox.addButton(QMessageBox::Ok);
+        msgBox.setDefaultButton(okButton);
+
+        msgBox.exec();
+
+        if (doNotShowCheckBox->isChecked()) {
+            settings.setValue("flatpakNetworkWarning/doNotShow", true);
+            settings.sync();
+        }
+    }
+#endif
+
         pingDialog->show();
     }
 
