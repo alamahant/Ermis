@@ -8,6 +8,9 @@ The protocol uses advanced steganography techniques to conceal data within legit
 
 ---
 
+Available in Flathub:
+https://flathub.org/en/apps/search?q=alamahant
+
 ## Features
 
  **Multi-Protocol Support**
