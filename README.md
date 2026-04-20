@@ -19,6 +19,30 @@ https://flathub.org/en/apps/search?q=alamahant
 - Automatic conversion of non-WAV files to WAV format using FFmpeg
 - Preserves audio quality while hiding data
 
+### 📝 Text Steganography
+- Hide data in plain text using invisible zero-width Unicode characters (U+200B, U+200C)
+- Binary-to-zero-width mapping with 4-byte header for data integrity
+- Real-time capacity calculation based on cover text length
+- Copy-to-clipboard and save-to-file for stego text
+- Automatic text/binary detection during extraction
+
+### 📄 PDF Steganography
+- Hide data in PDF files using /ObjStm object streams with FlateDecode compression
+- Incremental update structure for broad viewer compatibility
+- Capacity limit of ~50% of carrier PDF size
+- FNAM flag preserves original filename for binary files
+- ENCR flag enables automatic encryption detection on extraction
+- Real-time capacity display and validation
+
+### 🌐 Distributed Steganography
+- Hide messages across Wikipedia articles using word position pointers
+- No single carrier file — message reconstructed from JSON pointer map
+- Support for 10 Wikipedia languages (English, German, French, Spanish, Italian, Portuguese, Dutch, Russian, Japanese, Chinese)
+- JSON map format with language wrapper for cross-platform compatibility
+- Optional AES-256-CBC encryption of entire pointer map
+- Rate-limited Wikipedia API calls with automatic throttling
+- Real-time progress tracking for word mapping
+
 ### 📝 Data Handling
 - **Text Input**: Hide plain text messages
 - **File Input**: Hide any file type (documents, images, archives, etc.)
