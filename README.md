@@ -120,10 +120,6 @@ For detailed protocol specification, see the [ERTP Protocol Documentation](https
 - Save extracted data to any location
 - Text preview for readable content
 
-## Screenshots
-
-*[Screenshots would go here]*
-
 ## Installation
 
 ### Prerequisites
@@ -149,7 +145,7 @@ make
 
 # Run
 ./Ermis
-
+```
 ---
 
 ## License
