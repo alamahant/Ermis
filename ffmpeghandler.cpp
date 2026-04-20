@@ -339,7 +339,6 @@ QString FFmpegHandler::createTempFile(const QString &suffix)
 
 void FFmpegHandler::parseFFprobeOutput(const QString &output, AudioInfo &info)
 {
-    // Simple parsing - in reality you'd use JSON
     QRegularExpression sampleRateRegex("\"sample_rate\"\\s*:\\s*\"(\\d+)\"");
     QRegularExpression channelsRegex("\"channels\"\\s*:\\s*(\\d+)");
     QRegularExpression durationRegex("\"duration\"\\s*:\\s*\"([\\d\\.]+)\"");

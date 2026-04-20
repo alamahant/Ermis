@@ -59,6 +59,10 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         ertp_structs.h
         dnsstegengine.cpp dnsstegengine.h
         httpstegengine.cpp httpstegengine.h
+        distributedstegengine.cpp distributedstegengine.h
+        distributedstegdialog.cpp distributedstegdialog.h
+        pdfstegengine.cpp pdfstegengine.h
+        pdfstegdialog.cpp pdfstegdialog.h
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET Ermis APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

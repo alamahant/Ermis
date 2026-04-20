@@ -40,6 +40,8 @@
 #include"textstegdialog.h"
 #include"pingdialog.h"
 #include<QSplitter>
+#include"distributedstegdialog.h"
+#include"pdfstegdialog.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -243,11 +245,15 @@ private slots:
     void performFactoryReset();
     void setTheme(bool checked);
     void createErmisSymlink();
+    void openDistSteganography();
+    void openPdfSteganography();
 private:
     QSplitter *extractSplitter;
     QSplitter *hideSplitter;
     bool isDarkTheme = false;
     QAction *themeToggleAction;
+    DistributedStegDialog* distDialog = nullptr;
+    PDFStegDialog *pdfDialog = nullptr;
 
 };
 

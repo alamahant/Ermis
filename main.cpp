@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
 
     QCoreApplication::setApplicationName("Ermis");
     QCoreApplication::setOrganizationName("Alamahant");
-    QCoreApplication::setApplicationVersion("1.1.0");
+    QCoreApplication::setApplicationVersion("1.1.1");
     QDir().mkpath(Constants::appDirPath);
     QDir().mkpath(Constants::imagesPath);
     QDir().mkpath(Constants::fusedImagesPath);

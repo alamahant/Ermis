@@ -87,7 +87,6 @@ PingDialog::PingDialog(QWidget *parent)
     updateButtonStates();
     addToLog(" ICMP Ping Steganography ready");
     addToLog("ℹ️ Note: Requires root privileges. Run with sudo or set capabilities.");
-    addToLog("📝 REMINDER: IP filter also added to UDP and DNS engines");
     populateListWidgetFromTmp();
 
     Constants::ipFilterEnabled = settings.value("IPFilterEnabled", false).toBool();
@@ -109,7 +108,7 @@ void PingDialog::setupUI()
     
     // Create tab widget
     m_tabWidget = new QTabWidget(this);
-    
+    setupCornerWidget();
     // === SEND TAB ===
     m_sendTab = new QWidget();
     QVBoxLayout* sendLayout = new QVBoxLayout(m_sendTab);
@@ -959,7 +958,6 @@ void PingDialog::onEncryptToggled(bool checked)
         }
 
             if (dialog.rememberPassphrase()) {
-                // Store in dialog if you want, but engine has it
                 m_rememberedPassphrase = passphrase;
                 m_hasRememberedPassphrase = true;
             }
@@ -1309,4 +1307,92 @@ void PingDialog::onReceiverProtocolChanged(int index)
                       Constants::currentReceiverProtocol == Constants::DNS ? "DNS" :
                       Constants::currentReceiverProtocol == Constants::HTTP ? "HTTP" : "ICMP"));
     }
+}
+
+
+void PingDialog::setupCornerWidget()
+{
+    QPushButton *infoButton = new QPushButton("ⓘ", this);
+    infoButton->setFixedSize(16, 16);
+
+    infoButton->setToolTip(
+        "<html><body style='white-space: nowrap;'>"
+        "<b>🌐 Network Steganography</b><br>"
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━<br><br>"
+
+        "<b>⚠️ Important:</b><br>"
+        "• Sender MUST also be listening to receive ACKs<br>"
+        "• Without listening, transmission will fail<br>"
+        "• Sender and receiver MUST use same protocol<br>"
+        "• Sender and receiver MUST use same port<br>"
+        "• Coordinate protocol/port before transmission<br><br>"
+
+        "<b>📤 Send Data:</b><br>"
+        "• Enter target IP address<br>"
+        "• Select protocol (ICMP/UDP/DNS/HTTP)<br>"
+        "• Choose text or file mode<br>"
+        "• Optional: Encrypt with passphrase<br>"
+        "• Click 'Send' to transmit<br><br>"
+
+        "<b>📥 Receive Data:</b><br>"
+        "• Select receive protocol<br>"
+        "• Set port (UDP/DNS/HTTP only)<br>"
+        "• Click 'Start Listening'<br>"
+        "• Received files appear in list<br>"
+        "• Save files to desired location<br><br>"
+
+        "<b>🔐 Encryption:</b><br>"
+        "• AES-256-CBC encryption available<br>"
+        "• Passphrase must match on both ends<br>"
+        "• Encrypted data marked with header<br><br>"
+
+        "<b>📁 File Handling:</b><br>"
+        "• Received files stored in temp folder<br>"
+        "• Use 'Save Selected As' to export<br>"
+        "• 'Clear Temp Folder' removes all received files<br><br>"
+
+        "<b>⏱️ Notes:</b><br>"
+        "• ICMP requires root/admin privileges<br>"
+        "• UDP/DNS/HTTP work without special permissions<br>"
+        "• IP filtering available via 'Blocked IPs' button<br>"
+        "</body></html>"
+    );
+
+    infoButton->setObjectName("infoButton");
+
+    if (Constants::isDarkTheme) {
+        infoButton->setStyleSheet(
+            "QPushButton#infoButton { "
+            "background-color: rgba(13, 71, 161, 80); "
+            "border-radius: 16px; "
+            "font-size: 18px; "
+            "font-weight: bold; "
+            "color: rgba(255, 255, 255, 80); "
+            "border: none; "
+            "padding: 0px; "
+            "} "
+            "QPushButton#infoButton:hover { "
+            "background-color: rgba(21, 101, 192, 255); "
+            "color: rgba(255, 255, 255, 255); "
+            "}"
+        );
+    } else {
+        infoButton->setStyleSheet(
+            "QPushButton#infoButton { "
+            "background-color: rgba(70, 90, 110, 60); "
+            "border-radius: 16px; "
+            "font-size: 18px; "
+            "font-weight: bold; "
+            "color: rgba(40, 50, 70, 120); "
+            "border: none; "
+            "padding: 0px; "
+            "} "
+            "QPushButton#infoButton:hover { "
+            "background-color: rgba(21, 101, 192, 200); "
+            "color: rgba(255, 255, 255, 255); "
+            "}"
+        );
+    }
+
+    m_tabWidget->setCornerWidget(infoButton, Qt::TopRightCorner);
 }

@@ -26,6 +26,8 @@ class PingDialog : public QDialog
 
 public:
     explicit PingDialog(QWidget *parent = nullptr);
+public slots:
+    void onClearAll();
 
 private slots:
     // Send tab
@@ -46,7 +48,6 @@ private slots:
     void onReceiveProgress(int packet, int total);
     void onError(const QString& message);
     void updateSendButtonState();
-    void onClearAll();
     void onBlockedIpSettings();
 private:
     void setupUI();
@@ -117,6 +118,7 @@ private:
     QSpinBox* m_receiverPortSpinBox;
     QPushButton* m_cancelSendBtn;
     bool m_cancelling = false;
+    void setupCornerWidget();
 };
 
 #endif

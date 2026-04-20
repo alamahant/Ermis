@@ -338,7 +338,6 @@ bool StegEngine::embedPRTData(const QImage &originalImage, QImage &prtImage, con
         markedData.append("PRT");  // 3-byte header
         markedData.append(char(0x01)); // Version 1
         markedData.append(data);   // Actual payload
-    // Step 1: Use your existing embedding WITHOUT encryption
     bool embedSuccess = embedDataInImage(originalImage, prtImage, markedData);
 
     if (!embedSuccess) {

@@ -20,6 +20,8 @@ class TextStegDialog : public QDialog
 public:
     explicit TextStegDialog(QWidget *parent = nullptr);
     ~TextStegDialog();
+public slots:
+    void onClearAll();
 
 private slots:
     void onHideClicked();
@@ -28,7 +30,6 @@ private slots:
     void onLoadSecretFile();
     void onSaveStegoFile();
     void onCopyToClipboard();
-    void onClearAll();
     void onTabChanged(int index);
     void onTextInputToggled(bool checked);
     void onFileInputToggled(bool checked);
@@ -84,6 +85,7 @@ private:
     QByteArray m_extractedData;
     QString m_currentStegoText;
     bool m_isTextInput;
+    void setupCornerWidget();
 };
 
 #endif // TEXTSTEGDIALOG_H

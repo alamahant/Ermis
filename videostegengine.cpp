@@ -228,8 +228,6 @@ bool VideoStegEngine::embedInAudioTrack(const QByteArray &audioData,
                                         int bitsPerSample,
                                         int lsbCount)
 {
-    // This would call your existing AudioStegEngine
-    // For now, placeholder - you'd integrate with AudioStegEngine
     Q_UNUSED(audioData)
     Q_UNUSED(stegoAudio)
     Q_UNUSED(data)
@@ -238,7 +236,6 @@ bool VideoStegEngine::embedInAudioTrack(const QByteArray &audioData,
     Q_UNUSED(bitsPerSample)
     Q_UNUSED(lsbCount)
     
-    // TODO: Integrate with your AudioStegEngine
     return false;
 }
 
@@ -248,14 +245,12 @@ QByteArray VideoStegEngine::extractFromAudioTrack(const QByteArray &stegoAudio,
                                                   int bitsPerSample,
                                                   int lsbCount)
 {
-    // This would call your existing AudioStegEngine
     Q_UNUSED(stegoAudio)
     Q_UNUSED(sampleRate)
     Q_UNUSED(channels)
     Q_UNUSED(bitsPerSample)
     Q_UNUSED(lsbCount)
     
-    // TODO: Integrate with your AudioStegEngine
     return QByteArray();
 }
 
@@ -438,10 +433,7 @@ bool VideoStegEngine::isValidVideo(const QString &videoPath) const
     return meta.isValid;
 }
 
-// ===== MARKER FUNCTIONS (optional) =====
 
-// You could add marker detection similar to AudioStegEngine's hasAudioMarkers
-// but for video files
 
 FFmpegHandler::VideoInfo VideoStegEngine::toFFmpegVideoInfo(const VideoStegEngine::VideoMetadata &meta)
 {
@@ -453,8 +445,8 @@ FFmpegHandler::VideoInfo VideoStegEngine::toFFmpegVideoInfo(const VideoStegEngin
     info.fps = meta.fps;
     info.durationSeconds = meta.durationSeconds;
     info.codec = meta.codec;
-    info.pixelFormat = meta.pixelFormat;  // ✅ Set from metadata
-    info.bitrate = 0;  // You might want to add bitrate to VideoMetadata later
+    info.pixelFormat = meta.pixelFormat;
+    info.bitrate = 0;
 
     // Map audio fields
     info.audioSampleRate = meta.audioSampleRate;

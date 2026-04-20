@@ -34,6 +34,7 @@ namespace Constants {
 
     extern Protocol currentReceiverProtocol;
     extern quint16 bindReceiverPort;
+    extern bool isDarkTheme;
 }
 
 #endif // CONSTANTS_H

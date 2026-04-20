@@ -57,6 +57,8 @@ void TextStegDialog::setupUI()
     connect(m_tabWidget, &QTabWidget::currentChanged,
             this, &TextStegDialog::onTabChanged);
 
+     setupCornerWidget();
+
     setupHideTab();
 
     setupExtractTab();
@@ -557,8 +559,6 @@ void TextStegDialog::onHideClicked()
         PassphraseDialog dialog(true, this);
         if (dialog.exec() == QDialog::Accepted) {
             QString passphrase = dialog.getPassphrase();
-            // You'll need access to the main engine or add encryption to TextStegEngine
-            // For now, we'll skip encryption or add later
             QMessageBox::information(this, "Info", "Encryption will be implemented soon");
         } else {
             return;
@@ -672,4 +672,81 @@ void TextStegDialog::onSaveExtractedFile()
 
     QMessageBox::information(this, "Success",
         QString("Extracted data saved to:\n%1").arg(fileName));
+}
+
+
+void TextStegDialog::setupCornerWidget()
+{
+    QPushButton *infoButton = new QPushButton("ⓘ", this);
+    infoButton->setFixedSize(16, 16);
+    infoButton->setToolTip(
+        "<html><body style='white-space: nowrap;'>"
+        "<b>📝 Text Steganography</b><br>"
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━<br><br>"
+
+        "<b>🔒 Hide Data:</b><br>"
+        "• Enter or load cover text<br>"
+        "• Provide secret text or select file<br>"
+        "• Click 'Hide Data' to embed<br>"
+        "• Save or copy resulting stego text<br><br>"
+
+        "<b>🔓 Extract Data:</b><br>"
+        "• Paste or load stego text<br>"
+        "• Click 'Extract Data'<br>"
+        "• Text displays in viewer<br>"
+        "• Binary files prompt to save<br><br>"
+
+        "<b>📁 File Support:</b><br>"
+        "• Text files work best<br>"
+        "• Binary files may cause issues<br>"
+        "• Warning shown for non-text files<br><br>"
+
+        "<b>📊 Capacity:</b><br>"
+        "• Based on zero-width character count<br>"
+        "• Shown in status bar<br>"
+        "• Updates as text changes<br><br>"
+
+        "<b>💡 Notes:</b><br>"
+        "• Uses zero-width characters<br>"
+        "• Stego text looks identical to cover<br>"
+        "• Copy-paste preserves hidden data<br>"
+        "</body></html>"
+    );
+    infoButton->setObjectName("infoButton");
+
+    if (Constants::isDarkTheme) {
+        infoButton->setStyleSheet(
+            "QPushButton#infoButton { "
+            "background-color: rgba(13, 71, 161, 80); "
+            "border-radius: 16px; "
+            "font-size: 18px; "
+            "font-weight: bold; "
+            "color: rgba(255, 255, 255, 80); "
+            "border: none; "
+            "padding: 0px; "
+            "} "
+            "QPushButton#infoButton:hover { "
+            "background-color: rgba(21, 101, 192, 255); "
+            "color: rgba(255, 255, 255, 255); "
+            "}"
+        );
+    } else {
+        infoButton->setStyleSheet(
+            "QPushButton#infoButton { "
+            "background-color: rgba(70, 90, 110, 60); "
+            "border-radius: 16px; "
+            "font-size: 18px; "
+            "font-weight: bold; "
+            "color: rgba(40, 50, 70, 120); "
+            "border: none; "
+            "padding: 0px; "
+            "} "
+            "QPushButton#infoButton:hover { "
+            "background-color: rgba(21, 101, 192, 200); "
+            "color: rgba(255, 255, 255, 255); "
+            "}"
+        );
+    }
+
+    m_tabWidget->setCornerWidget(infoButton, Qt::TopRightCorner);
 }

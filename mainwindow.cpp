@@ -46,8 +46,10 @@ MainWindow::MainWindow(QWidget *parent)
     , audioEngine(new AudioStegEngine(this))
     , ffmpeg(new FFmpegHandler(this))
     , m_videoEngine(new VideoStegEngine(this))
-    , dialog(new TextStegDialog(this))
-    , pingDialog(new PingDialog(this))
+    //, dialog(new TextStegDialog(this))
+    //, pingDialog(new PingDialog(this))
+    //, distDialog(new DistributedStegDialog(this))
+    //, pdfDialog(new PDFStegDialog(this))
 {
     setAcceptDrops(true);  // ENABLE DRAG & DROP
     ui->setupUi(this);
@@ -59,11 +61,17 @@ MainWindow::MainWindow(QWidget *parent)
     createConnections();
 
     QSettings settings;
-    bool isdarktheme = settings.value("theme/dark", false).toBool();
-    setTheme(isdarktheme);
-    themeToggleAction->setChecked(isdarktheme);
-    qDebug() << isdarktheme;
+    isDarkTheme = settings.value("theme/dark", false).toBool();
+    Constants::isDarkTheme = isDarkTheme;
+    setTheme(isDarkTheme);
+    blockSignals(true);
+    themeToggleAction->setChecked(isDarkTheme);
+    blockSignals(false);
 
+    dialog = new TextStegDialog(this);
+    pingDialog = new PingDialog(this);
+    distDialog = new DistributedStegDialog(this);
+    pdfDialog = new PDFStegDialog(this);
 
     statusBar()->showMessage("Ready");
 }
@@ -121,7 +129,6 @@ void MainWindow::setupUi()
                 "}"
                 );
 
-    // Then in your topSectionWidget layout, add the splitter instead of previewLayout
 
     // Image file selection
     openImageButton = new QPushButton("Select Carrier Image", hideTab);
@@ -322,7 +329,14 @@ void MainWindow::createMenus()
     themeToggleAction->setCheckable(true);
     themeToggleAction->setChecked(false);
 
-    connect(themeToggleAction, &QAction::triggered, this, &MainWindow::setTheme);
+    connect(themeToggleAction, &QAction::triggered, this, [this](bool checked){
+        isDarkTheme = checked;
+        Constants::isDarkTheme = checked;
+        QSettings settings;
+        settings.setValue("theme/dark", checked);
+        settings.sync();
+        setTheme(checked);
+    });
 
     viewMenu->addAction(themeToggleAction);
 
@@ -330,6 +344,15 @@ void MainWindow::createMenus()
 
     QAction *textStegAction = toolsMenu->addAction("Text Steganography");
     connect(textStegAction, &QAction::triggered, this, &MainWindow::openTextSteganography);
+
+    toolsMenu->addSeparator();
+    QAction *distStegAction = toolsMenu->addAction("Distributed Steganography");
+    connect(distStegAction, &QAction::triggered, this, &MainWindow::openDistSteganography);
+
+    toolsMenu->addSeparator();
+    QAction *pdfStegAction = toolsMenu->addAction("Pdf Steganography");
+    connect(pdfStegAction, &QAction::triggered, this, &MainWindow::openPdfSteganography);
+
 
     toolsMenu->addSeparator();
     m_pingStegAction = toolsMenu->addAction("Network Steganography");
@@ -355,7 +378,7 @@ void MainWindow::createMenus()
         }
 
         QMessageBox::information(this, "My IPs",
-            QString("External: %1\nLocal: %2").arg(externalIp, localIp));
+                                 QString("External: %1\nLocal: %2").arg(externalIp, localIp));
     });
     toolsMenu->addSeparator();
     QAction *factoryResetAction = toolsMenu->addAction("Factory Reset");
@@ -367,21 +390,44 @@ void MainWindow::createMenus()
     QAction *aboutAction = helpMenu->addAction("About Ermis");
     connect(aboutAction, &QAction::triggered, [this]() {
         HelpMenuDialog dialog(HelpType::About, this);
-        dialog.exec();
+        if(isDarkTheme){
+            setTheme(false);
+            dialog.exec();
+            setTheme(true);
+
+        }else{
+            dialog.exec();
+        }
     });
 
     // Features
     QAction *featuresAction = helpMenu->addAction("Features");
     connect(featuresAction, &QAction::triggered, [this]() {
         HelpMenuDialog dialog(HelpType::Features, this);
-        dialog.exec();
+        if(isDarkTheme){
+            setTheme(false);
+
+            dialog.exec();
+            setTheme(true);
+
+        }else{
+            dialog.exec();
+        }
     });
 
     // Instructions
     QAction *instructionsAction = helpMenu->addAction("Instructions");
     connect(instructionsAction, &QAction::triggered, [this]() {
         HelpMenuDialog dialog(HelpType::Instructions, this);
-        dialog.exec();
+        if(isDarkTheme){
+            setTheme(false);
+
+            dialog.exec();
+            setTheme(true);
+
+        }else{
+            dialog.exec();
+        }
     });
 
 
@@ -389,14 +435,31 @@ void MainWindow::createMenus()
     QAction *whatsNewAction = helpMenu->addAction("What's New");
     connect(whatsNewAction, &QAction::triggered, [this]() {
         HelpMenuDialog dialog(HelpType::onChangelog, this);
-        dialog.exec();
+        if(isDarkTheme){
+            setTheme(false);
+
+            dialog.exec();
+            setTheme(true);
+
+        }else{
+            dialog.exec();
+        }
     });
 
     QAction *supportusAction = helpMenu->addAction("Support Us");
-        connect(supportusAction, &QAction::triggered, [this]() {
-            DonationDialog dialog(this);
+    connect(supportusAction, &QAction::triggered, [this]() {
+
+        DonationDialog dialog(this);
+        if(isDarkTheme){
+            setTheme(false);
+
             dialog.exec();
-        });
+            setTheme(true);
+
+        }else{
+            dialog.exec();
+        }
+    });
     //////////////////////////////////////////////////
 
     //prt checkbox
@@ -450,885 +513,393 @@ void MainWindow::createMenus()
 
 
 
-    void MainWindow::createConnections()
-    {
-        // Carrier image selection
-        //connect(openImageButton, &QPushButton::clicked, this, &MainWindow::openCarrierImage);
-        connect(openImageButton, &QPushButton::clicked, [this]() {
-            showSandboxWarning();
+void MainWindow::createConnections()
+{
+    // Carrier image selection
+    //connect(openImageButton, &QPushButton::clicked, this, &MainWindow::openCarrierImage);
+    connect(openImageButton, &QPushButton::clicked, [this]() {
+        showSandboxWarning();
 
-            if (isAudioMode) {
-                openAudioCarrier();
-            } else {
-                openCarrierImage();
-            }
-        });
+        if (isAudioMode) {
+            openAudioCarrier();
+        } else {
+            openCarrierImage();
+        }
+    });
 
-        //connect(saveImageButton, &QPushButton::clicked, this, &MainWindow::saveModifiedImage);
-        connect(saveImageButton, &QPushButton::clicked, [this]() {
-            if (isAudioMode) {
-                saveModifiedAudio();
-            } else {
-                saveModifiedImage();
-            }
-        });
-        // Input method selection
-        connect(textInputRadio, &QRadioButton::toggled, this, &MainWindow::toggleInputMethod);
-        connect(fileInputRadio, &QRadioButton::toggled, this, &MainWindow::toggleInputMethod);
-        connect(browseFileButton, &QPushButton::clicked, this, &MainWindow::selectDataFile);
+    //connect(saveImageButton, &QPushButton::clicked, this, &MainWindow::saveModifiedImage);
+    connect(saveImageButton, &QPushButton::clicked, [this]() {
+        if (isAudioMode) {
+            saveModifiedAudio();
+        } else {
+            saveModifiedImage();
+        }
+    });
+    // Input method selection
+    connect(textInputRadio, &QRadioButton::toggled, this, &MainWindow::toggleInputMethod);
+    connect(fileInputRadio, &QRadioButton::toggled, this, &MainWindow::toggleInputMethod);
+    connect(browseFileButton, &QPushButton::clicked, this, &MainWindow::selectDataFile);
 
-        // Connect encryption checkbox to update the hide button text
-        connect(encryptionCheckBox, &QCheckBox::toggled, this, [this](bool checked) {
-            hideButton->setText(checked ? "Hide Encrypted Data" : "Hide Data");
-        });
-
-
-        connect(hideButton, &QPushButton::clicked, [this]() {
-
-            if (isAudioMode) {
-                hideDataInAudio();  // Call audio hide method
-                return;
-            }
-
-            if (originalImage.isNull()) {
-                QMessageBox::warning(this, "Error", "Please load a carrier image first");
-                return;
-            }
-
-            QByteArray data;
-
-            if (isTextInput) {
-                QString text = textInput->toPlainText();
-
-                if (text.isEmpty()) {
-                    QMessageBox::warning(this, "Error", "Please enter text to hide");
-                    return;
-                }
-                data = text.toUtf8();
-
-                QByteArray textData;
-                textData.append(static_cast<char>(0x00)); // 0 means it's pure text, not a file
-                textData.append(data);
-                data = textData;
-
-            } else {
-                QString filePath = filePathInput->text();
-                QFile file(filePath);
-                if (!file.exists() || !file.open(QIODevice::ReadOnly)) {
-                    QMessageBox::warning(this, "Error", "Could not open the selected file");
-                    return;
-                }
-
-                QByteArray fileData = file.readAll();
-                file.close();
-
-                // Extract the base filename with extension
-                QString fileName = QFileInfo(filePath).fileName(); // e.g., "document.txt"
-                QByteArray fileNameBytes = fileName.toUtf8();
-
-                // Prepend filename length and filename to the file data
-                data.clear();  // ensure outer data is empty
-                data.append(static_cast<char>(fileNameBytes.size())); // 1 byte for length (max 255)
-                data.append(fileNameBytes);
-                data.append(fileData);
-            }
-
-            // Check if encryption is enabled
-            if (encryptionCheckBox->isChecked()) {
-                PassphraseDialog dialog(true, this);
-                if (dialog.exec() == QDialog::Accepted) {
-                    QString passphrase = dialog.getPassphrase();
-
-                    // Encrypt the data
-                    QByteArray encryptedData = engine->encryptData(data, passphrase);
-                    if (encryptedData.isEmpty()) {
-                        QMessageBox::warning(this, "Error", "Encryption failed");
-                        return;
-                    }
-
-                    // Prepend the ENCR marker
-                    encryptedData.prepend("ENCR");
-
-                    // Check if the encrypted data will fit
-                    int capacity = engine->calculateImageCapacity(originalImage);
-                    if (encryptedData.size() > capacity) {
-                        QMessageBox::warning(this, "Error",
-                        QString("Encrypted data size (%1 bytes) exceeds image capacity (%2 bytes)")
-                        .arg(encryptedData.size()).arg(capacity));
-                        return;
-                    }
-
-                    // Remember passphrase if requested
-                    if (dialog.rememberPassphrase()) {
-                        rememberedPassphrase = passphrase;
-                        hasRememberedPassphrase = true;
-                    }
-
-                    // Use the encrypted data
-                    data = encryptedData;
-                } else {
-                    return; // User canceled
-                }
-            }
-
-            // Check if the data will fit
-            int capacity = engine->calculateImageCapacity(originalImage);
-            if (data.size() > capacity) {
-                QMessageBox::warning(this, "Error",
-                QString("Data size (%1 bytes) exceeds image capacity (%2 bytes)")
-                .arg(data.size()).arg(capacity));
-                return;
-            }
-
-            // Embed the data
-            if (isPRTMode) {
-                if (engine->embedPRTData(originalImage, modifiedImage, data)) {
-                    originalModifiedImage = modifiedImage;
-                    modifiedZoom = 1.0;
-                    QPixmap pixmap = QPixmap::fromImage(modifiedImage);
-                    pixmap = pixmap.scaled(modifiedImageLabel->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-                    modifiedImageLabel->setPixmap(pixmap);
-                    saveImageButton->setEnabled(true);
-                    statusBar()->showMessage("PRT artistic code created successfully");
-                } else {
-                    QMessageBox::warning(this, "Error", "Failed to create PRT artistic code");
-                }
-            } else {
-                if (engine->embedDataInImage(originalImage, modifiedImage, data)) {
-                    originalModifiedImage = modifiedImage;
-                    modifiedZoom = 1.0;
-                    QPixmap pixmap = QPixmap::fromImage(modifiedImage);
-                    pixmap = pixmap.scaled(modifiedImageLabel->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-                    modifiedImageLabel->setPixmap(pixmap);
-                    saveImageButton->setEnabled(true);
-                    statusBar()->showMessage(encryptionCheckBox->isChecked() ?
-                    "Encrypted data hidden successfully" :
-                    "Data hidden successfully");
-                } else {
-                    QMessageBox::warning(this, "Error", "Failed to hide data in the image");
-                }
-            }
-        });
-        // Extract tab connections
-
-        connect(openStegoImageButton, &QPushButton::clicked, [this]() {
-
-            showStegoFolderWarning();
-
-            // === AUDIO MODE CHECK FIRST ===
-            if (isAudioMode) {
-                openAudioStegoFile();
-                return;
-            }
+    // Connect encryption checkbox to update the hide button text
+    connect(encryptionCheckBox, &QCheckBox::toggled, this, [this](bool checked) {
+        hideButton->setText(checked ? "Hide Encrypted Data" : "Hide Data");
+    });
 
 
+    connect(hideButton, &QPushButton::clicked, [this]() {
 
-
-            QString fileName = QFileDialog::getOpenFileName(this, "Open Image with Hidden Data",
-            Constants::fusedImagesPath,
-            "Image Files (*.png *.jpg *.bmp)");
-            if (fileName.isEmpty()) {
-                return;
-            }
-
-            stegoImage.load(fileName);
-            if (!stegoImage.isNull()) {
-                originalStegoImage = stegoImage;
-                stegoZoom = 1.0;
-                // For detection only - check if it's PRT
-                QByteArray detectionData = engine->extractDataFromImage(stegoImage);
-                isPRTMode = (detectionData.size() >= 4 &&
-                detectionData.startsWith("PRT") && detectionData[3] == 0x01);
-
-                prtCheckBox->setChecked(isPRTMode);
-
-                //
-                QPixmap pixmap = QPixmap::fromImage(stegoImage);
-                pixmap = pixmap.scaled(stegoImageLabel->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-                stegoImageLabel->setPixmap(pixmap);
-                saveExtractedFileButton->setEnabled(true);
-                //extractButton->setEnabled(true);
-                statusBar()->showMessage("Image loaded successfully: " + fileName);
-                currentToExtractPath = fileName;
-            } else {
-                statusBar()->showMessage("Failed to load image");
-                QMessageBox::warning(this, "Error", "Failed to load the selected image");
-            }
-        });
-
-        connect(saveExtractedFileButton, &QPushButton::clicked, [this]() {
-
-            // === AUDIO MODE CHECK FIRST ===
-            if (isAudioMode) {
-                extractDataFromAudio();  // Call audio extraction method
-                return;
-            }
-
-            if (stegoImage.isNull()) {
-                QMessageBox::warning(this, "Error", "Please load an image with hidden data first");
-                return;
-            }
-
-            // Extract raw data from the image
-            QByteArray extractedData = isPRTMode
-            ? engine->extractPRTData(stegoImage)
-            : engine->extractDataFromImage(stegoImage);
-
-            if (extractedData.isEmpty()) {
-                QMessageBox::warning(this, "Error", "No hidden data found or data extraction failed");
-                return;
-            }
-
-            // Check if data is encrypted
-            if (!isPRTMode && extractedData.startsWith("ENCR")) {
-                QByteArray decryptedData;
-                bool passphraseUsed = false;
-
-                // Try remembered passphrase first
-                if (hasRememberedPassphrase) {
-                    decryptedData = engine->decryptData(extractedData.mid(4), rememberedPassphrase);
-                    if (!decryptedData.isEmpty()) passphraseUsed = true;
-                }
-
-                // If decryption failed, ask user
-                while (!passphraseUsed) {
-                    PassphraseDialog dialog(false, this);
-                    if (dialog.exec() != QDialog::Accepted) return; // User canceled
-
-                    QString passphrase = dialog.getPassphrase();
-                    decryptedData = engine->decryptData(extractedData.mid(4), passphrase);
-                    if (!decryptedData.isEmpty()) {
-                        if (dialog.rememberPassphrase()) {
-                            rememberedPassphrase = passphrase;
-                            hasRememberedPassphrase = true;
-                        }
-                        break;
-                    } else {
-                        QMessageBox::warning(this, "Error", "Decryption failed. Check your passphrase.");
-                    }
-                }
-
-                extractedData = decryptedData;
-            }
-
-            // --- Extract filename and content ---
-            int fileNameLen = static_cast<unsigned char>(extractedData[0]); // first byte = filename length
-
-            QByteArray fileContent;
-            QString extractedFileName;
-
-            if (fileNameLen == 0) {
-                // It's pure text data
-                extractedFileName = QString("extracted_text_%1.txt")
-                .arg(QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss"));
-                fileContent = extractedData.mid(1); // Skip the 0 marker
-            } else {
-                // It's a file with filename
-                extractedFileName = QString::fromUtf8(extractedData.mid(1, fileNameLen));
-                fileContent = extractedData.mid(1 + fileNameLen);
-            }
-            QRegularExpression invalidChars(R"([:,'"])");  // includes colon, comma, single and double quote
-            // --- Simple fix: if filename contains ":", use default ---
-
-            if (extractedFileName.contains(invalidChars)) {
-                extractedFileName = QString("extracted_data_%1.txt")
-                .arg(QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss"));
-            }
-
-            // --- Prepare default save path ---
-            QString defaultFilePath = QDir(Constants::extractedImagesPath).filePath(extractedFileName);
-
-            // --- Ask user where to save ---
-            QString savePath = QFileDialog::getSaveFileName(this, "Save Extracted File", defaultFilePath);
-
-            // If user cancels, use default
-            if (savePath.isEmpty()) savePath = defaultFilePath;
-
-            // --- Write to disk ---
-            QFile outFile(savePath);
-            if (outFile.open(QIODevice::WriteOnly)) {
-                qint64 written = outFile.write(fileContent);
-                outFile.close();
-
-                if (written == fileContent.size()) {
-                    statusBar()->showMessage("Extracted file saved as: " + savePath);
-                    QMessageBox::information(this, "File Saved",
-                    "Extracted file saved successfully:\n" + savePath);
-
-                    // If the file is text, display it
-                    QString text = QString::fromUtf8(fileContent);
-                    bool isText = true;
-                    for (const QChar &c : text) {
-                        if (!c.isPrint() && !c.isSpace()) {
-                            isText = false;
-                            break;
-                        }
-                    }
-                    if (isText) {
-                        if (text.length() > 10000) {
-                            extractedTextOutput->clear();
-                            extractedTextOutput->setPlainText(
-                            QString("Extracted text is too long to display.\n"
-                            "Please access it by opening:\n%1")
-                            .arg(savePath)
-                            );
-                        } else {
-                            extractedTextOutput->setPlainText(text);
-                        }
-                    }
-
-                } else {
-                    QMessageBox::warning(this, "Error", "Could not write all data to disk");
-                }
-            } else {
-                QMessageBox::warning(this, "Error", "Failed to open file for writing");
-            }
-        });
-
-        // Add this connection to update capacity when text changes
-        //connect(textInput, &QPlainTextEdit::textChanged, this, &MainWindow::updateCapacityStatus);
-
-        // Add this connection to update capacity when file path changes
-        //connect(filePathInput, &QLineEdit::textChanged, this, &MainWindow::updateCapacityStatus);
-
-        connect(textInput, &QPlainTextEdit::textChanged, this, [this](){
-            if (isAudioMode)
-            updateAudioCapacity();
-            else
-            updateCapacityStatus();
-        });
-
-        connect(filePathInput, &QLineEdit::textChanged, this, [this](){
-            if (isAudioMode)
-            updateAudioCapacity();
-            else
-            updateCapacityStatus();
-        });
-
-        connect(cameraButton, &QPushButton::clicked, this, &MainWindow::onCameraButtonClicked);
-        connect(clipboardButton, &QPushButton::clicked, [this] {
-            QApplication::clipboard()->setText(extractedTextOutput->toPlainText());
-            statusBar()->showMessage(" Copied to clipboard!");
-        });
-        connect(resetButton, &QPushButton::clicked, this, &MainWindow::resetAll);
-
-    }
-
-    void MainWindow::openCarrierImage() {
-
-        QString initialPath = Constants::imagesPath;
-
-        if (!QDir(initialPath).exists()) {
-            initialPath = Constants::imagesPath;
+        if (isAudioMode) {
+            hideDataInAudio();  // Call audio hide method
+            return;
         }
 
-        QString fileName = QFileDialog::getOpenFileName(this, "Open Carrier Image",
-        initialPath,
-        "Image Files (*.png *.jpg *.bmp)");
-        if (!fileName.isEmpty()) {
-            originalImage.load(fileName);
-            if (!originalImage.isNull()) {
-                // Convert to a format that supports alpha channel if needed
-                if (originalImage.format() != QImage::Format_ARGB32 &&
-                originalImage.format() != QImage::Format_RGB32) {
-                    originalImage = originalImage.convertToFormat(QImage::Format_ARGB32);
+        if (originalImage.isNull()) {
+            QMessageBox::warning(this, "Error", "Please load a carrier image first");
+            return;
+        }
+
+        QByteArray data;
+
+        if (isTextInput) {
+            QString text = textInput->toPlainText();
+
+            if (text.isEmpty()) {
+                QMessageBox::warning(this, "Error", "Please enter text to hide");
+                return;
+            }
+            data = text.toUtf8();
+
+            QByteArray textData;
+            textData.append(static_cast<char>(0x00)); // 0 means it's pure text, not a file
+            textData.append(data);
+            data = textData;
+
+        } else {
+            QString filePath = filePathInput->text();
+            QFile file(filePath);
+            if (!file.exists() || !file.open(QIODevice::ReadOnly)) {
+                QMessageBox::warning(this, "Error", "Could not open the selected file");
+                return;
+            }
+
+            QByteArray fileData = file.readAll();
+            file.close();
+
+            // Extract the base filename with extension
+            QString fileName = QFileInfo(filePath).fileName(); // e.g., "document.txt"
+            QByteArray fileNameBytes = fileName.toUtf8();
+
+            // Prepend filename length and filename to the file data
+            data.clear();  // ensure outer data is empty
+            data.append(static_cast<char>(fileNameBytes.size())); // 1 byte for length (max 255)
+            data.append(fileNameBytes);
+            data.append(fileData);
+        }
+
+        // Check if encryption is enabled
+        if (encryptionCheckBox->isChecked()) {
+            PassphraseDialog dialog(true, this);
+            if (dialog.exec() == QDialog::Accepted) {
+                QString passphrase = dialog.getPassphrase();
+
+                // Encrypt the data
+                QByteArray encryptedData = engine->encryptData(data, passphrase);
+                if (encryptedData.isEmpty()) {
+                    QMessageBox::warning(this, "Error", "Encryption failed");
+                    return;
                 }
 
-                originalCarrierImage = originalImage;
-                carrierZoom = 1.0;
+                // Prepend the ENCR marker
+                encryptedData.prepend("ENCR");
 
-                QPixmap pixmap = QPixmap::fromImage(originalImage);
-                pixmap = pixmap.scaled(originalImageLabel->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-                originalImageLabel->setPixmap(pixmap);
-                modifiedImageLabel->clear();
-                modifiedImageLabel->setText("Modified Image (not yet created)");
-                hideButton->setEnabled(true);
-                saveImageButton->setEnabled(false);
-                updateCapacityStatus();
-                currentCarrierPath = fileName;
-                statusBar()->showMessage("Image loaded successfully");
+                // Check if the encrypted data will fit
+                int capacity = engine->calculateImageCapacity(originalImage);
+                if (encryptedData.size() > capacity) {
+                    QMessageBox::warning(this, "Error",
+                                         QString("Encrypted data size (%1 bytes) exceeds image capacity (%2 bytes)")
+                                         .arg(encryptedData.size()).arg(capacity));
+                    return;
+                }
+
+                // Remember passphrase if requested
+                if (dialog.rememberPassphrase()) {
+                    rememberedPassphrase = passphrase;
+                    hasRememberedPassphrase = true;
+                }
+
+                // Use the encrypted data
+                data = encryptedData;
             } else {
-                statusBar()->showMessage("Failed to load image");
+                return; // User canceled
             }
         }
-    }
 
+        // Check if the data will fit
+        int capacity = engine->calculateImageCapacity(originalImage);
+        if (data.size() > capacity) {
+            QMessageBox::warning(this, "Error",
+                                 QString("Data size (%1 bytes) exceeds image capacity (%2 bytes)")
+                                 .arg(data.size()).arg(capacity));
+            return;
+        }
 
-    void MainWindow::saveModifiedImage() {
-        if (modifiedImage.isNull()) {
-            QMessageBox::warning(this, "Error", "No modified image to save");
+        // Embed the data
+        if (isPRTMode) {
+            if (engine->embedPRTData(originalImage, modifiedImage, data)) {
+                originalModifiedImage = modifiedImage;
+                modifiedZoom = 1.0;
+                QPixmap pixmap = QPixmap::fromImage(modifiedImage);
+                pixmap = pixmap.scaled(modifiedImageLabel->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+                modifiedImageLabel->setPixmap(pixmap);
+                saveImageButton->setEnabled(true);
+                statusBar()->showMessage("PRT artistic code created successfully");
+            } else {
+                QMessageBox::warning(this, "Error", "Failed to create PRT artistic code");
+            }
+        } else {
+            if (engine->embedDataInImage(originalImage, modifiedImage, data)) {
+                originalModifiedImage = modifiedImage;
+                modifiedZoom = 1.0;
+                QPixmap pixmap = QPixmap::fromImage(modifiedImage);
+                pixmap = pixmap.scaled(modifiedImageLabel->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+                modifiedImageLabel->setPixmap(pixmap);
+                saveImageButton->setEnabled(true);
+                statusBar()->showMessage(encryptionCheckBox->isChecked() ?
+                                             "Encrypted data hidden successfully" :
+                                             "Data hidden successfully");
+            } else {
+                QMessageBox::warning(this, "Error", "Failed to hide data in the image");
+            }
+        }
+    });
+    // Extract tab connections
+
+    connect(openStegoImageButton, &QPushButton::clicked, [this]() {
+
+        showStegoFolderWarning();
+
+        // === AUDIO MODE CHECK FIRST ===
+        if (isAudioMode) {
+            openAudioStegoFile();
             return;
         }
 
 
 
-        // Create a default filename with timestamp
-        QString defaultFilename = QString("%1/stego_image_%2.png")
-        .arg(Constants::fusedImagesPath)
-        .arg(QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss"));
 
-        // Create and configure the file dialog
-        QFileDialog fileDialog(this, "Save Modified Image", defaultFilename, "PNG Image (*.png)");
-        fileDialog.setAcceptMode(QFileDialog::AcceptSave);
-        fileDialog.setDefaultSuffix("png");
-
-        // Show the dialog and get the result
-        if (fileDialog.exec() != QDialog::Accepted) {
-            return;
-        }
-
-        // Get the selected file path
-        QString fileName = fileDialog.selectedFiles().first();
+        QString fileName = QFileDialog::getOpenFileName(this, "Open Image with Hidden Data",
+                                                        Constants::fusedImagesPath,
+                                                        "Image Files (*.png *.jpg *.bmp)");
         if (fileName.isEmpty()) {
             return;
         }
 
-        // Ensure PNG extension
-        if (!fileName.endsWith(".png", Qt::CaseInsensitive)) {
-            fileName += ".png";
-        }
-
-
-        // Ensure the directory exists
-        //QDir().mkpath(QFileInfo(fileName).absolutePath());
-
-        // Show a "please wait" message in the status bar immediately
-        statusBar()->showMessage("Saving image, please wait...");
-        QApplication::processEvents();
-
-        // Create and show progress dialog
-        QProgressDialog progress("Saving image...", nullptr, 0, 0, this);
-        progress.setWindowModality(Qt::WindowModal);
-        progress.setCancelButton(nullptr);
-        progress.setMinimumDuration(0);
-        progress.show();
-        QApplication::processEvents();
-
-        // Use a separate thread for saving to keep UI responsive
-        QFuture<bool> future = QtConcurrent::run([this, fileName]() {
-            return modifiedImage.save(fileName, "PNG", 5);
-        });
-
-        // Create a watcher to monitor the save operation
-        QFutureWatcher<bool> watcher;
-        QObject::connect(&watcher, &QFutureWatcher<bool>::finished, [&]() {
-            progress.close();
-
-            bool success = future.result();
-            if (success) {
-                statusBar()->showMessage("Image saved successfully to: " + fileName);
-                currentModifiedPath = fileName;
-            } else {
-                QMessageBox::warning(this, "Error", "Could not save the image");
-            }
-        });
-
-        // Start watching the future
-        watcher.setFuture(future);
-
-        // Wait for the operation to complete (with event processing)
-        while (!future.isFinished()) {
-            QApplication::processEvents();
-            QThread::msleep(50);
-        }
-    }
-
-    void MainWindow::updateCapacityStatus()
-    {
-        if (originalImage.isNull()) {
-            capacityLabel->setText("Capacity: 0/0 bytes (0%)");
-            return;
-        }
-
-        int capacity = engine->calculateImageCapacity(originalImage);
-        int dataSize = 0;
-
-        if (isTextInput) {
-            dataSize = textInput->toPlainText().toUtf8().size();
-        } else {
-            QFile file(filePathInput->text());
-            if (file.exists() && file.open(QIODevice::ReadOnly)) {
-                dataSize = file.size();
-                file.close();
-            }
-        }
-
-        // If encryption is checked, estimate the encrypted size (add ~30% for encryption overhead)
-        if (encryptionCheckBox->isChecked() && dataSize > 0) {
-            dataSize = dataSize + 32 + 4; // 32 bytes for salt+IV, 4 bytes for "ENCR" marker
-            // Add padding to account for AES block size (16 bytes)
-            int remainder = dataSize % 16;
-            if (remainder > 0) {
-                dataSize += (16 - remainder);
-            }
-        }
-
-        double percentage = (capacity > 0) ? (dataSize * 100.0 / capacity) : 0;
-        capacityLabel->setText(QString("Capacity: %1/%2 bytes (%3%)").arg(dataSize).arg(capacity).arg(percentage, 0, 'f', 1));
-
-        // Update the hide button status based on capacity
-        hideButton->setEnabled(capacity > 0 && dataSize > 0 && dataSize <= capacity);
-    }
-
-
-    /*
-void MainWindow::toggleInputMethod()
-{
-    isTextInput = textInputRadio->isChecked();
-
-    textInput->setEnabled(isTextInput);
-    filePathInput->setEnabled(!isTextInput);
-    browseFileButton->setEnabled(!isTextInput);
-
-    updateCapacityStatus();
-}
-*/
-
-    void MainWindow::toggleInputMethod()
-    {
-        isTextInput = textInputRadio->isChecked();
-
-        textInput->setEnabled(isTextInput);
-        filePathInput->setEnabled(!isTextInput);
-        browseFileButton->setEnabled(!isTextInput);
-
-        if (isAudioMode) {
-            updateAudioCapacity();
-            hideButton->setEnabled(!m_currentAudioData.isEmpty());
-        } else {
-            updateCapacityStatus();  // image mode
-            hideButton->setEnabled(!originalImage.isNull());
-        }
-    }
-
-
-    void MainWindow::selectDataFile() {
-
-
-        QString fileName = QFileDialog::getOpenFileName(this, "Select File to Hide", Constants::imagesPath);
-
-        if (!fileName.isEmpty()) {
-            filePathInput->setText(fileName);
-            if(isAudioMode){
-                updateAudioCapacity();
-            }else {
-                updateCapacityStatus();
-            }
-        }
-    }
-
-    //camera
-    void MainWindow::setupCamera()
-    {
-
-        // Get available cameras
-        const QList<QCameraDevice> cameras = QMediaDevices::videoInputs();
-
-
-        if (!cameras.isEmpty()) {
-            camera = new QCamera(cameras.first());
-
-
-            videoSink = new QVideoSink(this);
-
-            QMediaCaptureSession *captureSession = new QMediaCaptureSession;
-
-            captureSession->setCamera(camera);
-
-            captureSession->setVideoSink(videoSink);
-
-            connect(videoSink, &QVideoSink::videoFrameChanged,
-            this, &MainWindow::processCameraFrame);
-
-            camera->start();
-
-            statusBar()->showMessage("Camera started - scanning for PRT codes...");
-        } else {
-            QMessageBox::warning(this, "No Camera", "No camera device found!");
-        }
-    }
-
-
-    void MainWindow::processCameraFrame(const QVideoFrame &frame)
-    {
-        static int frameCount = 0;
-        if (++frameCount % 5 != 0) return;
-
-        QImage image = frame.toImage();
-
-        QByteArray data = engine->extractPRTData(image);
-        if (!data.isEmpty()) {
-
-            // THREAD-SAFE UI UPDATE
-            QMetaObject::invokeMethod(this, [this, data]() {
-                QString text = QString::fromUtf8(data);
-                extractedTextOutput->setPlainText(text);
-                statusBar()->showMessage("PRT code scanned successfully!");
-
-                // Optional: Show success message like in file mode
-                QMessageBox::information(this, "PRT Code Scanned",
-                "PRT code successfully scanned from camera!\n\nContent: " + text);
-
-                stopCamera();
-            }, Qt::QueuedConnection);
-
-            return; // Important: return after queuing the update
-        }
-    }
-
-    void MainWindow::resetAll()
-    {
-
-        // Stop camera if running
-        if (camera) {
-            stopCamera();
-        }
-
-        // ===== HIDE TAB =====
-
-        // Clear image previews
-        originalImageLabel->clear();
-        originalImageLabel->setText("Original Image");
-        modifiedImageLabel->clear();
-        modifiedImageLabel->setText("Modified Image");
-
-        // Clear image data
-        originalImage = QImage();
-        modifiedImage = QImage();
-
-        // Reset data input
-        textInput->clear();
-        filePathInput->clear();
-        textInputRadio->setChecked(true);
-        filePathInput->setEnabled(false);
-        browseFileButton->setEnabled(false);
-
-        // Reset encryption
-        encryptionCheckBox->setChecked(false);
-        audioStegCheckBox->setChecked(false);
-        isAudioMode = false;
-        // Reset buttons and labels
-        hideButton->setEnabled(false);
-        saveImageButton->setEnabled(false);
-        capacityLabel->setText("Capacity: 0/0 bytes (0%)");
-
-        // ===== EXTRACT TAB =====
-
-        // Clear stego image preview
-        stegoImageLabel->clear();
-        stegoImageLabel->setText("Steganographic Image");
-
-        // Clear extracted data
-        extractedTextOutput->clear();
-        stegoImage = QImage();
-
-        // Reset extract buttons
-        extractButton->setEnabled(false);
-        saveExtractedFileButton->setEnabled(false);
-
-        // Reset camera button text if needed
-        cameraButton->setText("Start Camera");
-
-        // ===== RESET MODE STATE =====
-        // If you want to reset PRT mode too:
-        // isPRTMode = false;
-        // if (prtCheckBox) prtCheckBox->setChecked(false);
-
-        // Clear any remembered passphrase
-        hasRememberedPassphrase = false;
-        rememberedPassphrase.clear();
-        //prtCheckBox->setChecked(false);
-        statusBar()->showMessage("All fields reset");
-
-        // Remove all selection highlights
-        originalImageLabel->setStyleSheet("");
-        modifiedImageLabel->setStyleSheet("");
-        stegoImageLabel->setStyleSheet("");
-
-        if(m_audioToolbar->isVisible()) {
-            toggleAudioBarAction->setChecked(false);
-            if(audioPlayer && audioPlayer->isPlaying()) {
-                audioPlayer->stop();
-            }
-            m_audioToolbar->setVisible(false);
-        }
-    }
-
-
-    void MainWindow::dragEnterEvent(QDragEnterEvent *event)
-    {
-        if (!event->mimeData()->hasUrls()) return;
-
-        QList<QUrl> urls = event->mimeData()->urls();
-        if (urls.isEmpty()) return;
-
-        QString filePath = urls.first().toLocalFile();
-        if (filePath.isEmpty()) return;
-
-        // Accept if image
-        bool isImage = filePath.endsWith(".png", Qt::CaseInsensitive) ||
-        filePath.endsWith(".jpg", Qt::CaseInsensitive) ||
-        filePath.endsWith(".jpeg", Qt::CaseInsensitive);
-
-        // Accept if audio
-        bool isAudio = filePath.endsWith(".mp3", Qt::CaseInsensitive) ||
-        filePath.endsWith(".wav", Qt::CaseInsensitive) ||
-        filePath.endsWith(".flac", Qt::CaseInsensitive) ||
-        filePath.endsWith(".ogg", Qt::CaseInsensitive);
-
-        if (isImage || isAudio) {
-            event->acceptProposedAction();
-        }
-    }
-
-    void MainWindow::dropEvent(QDropEvent *event)
-    {
-        QList<QUrl> urls = event->mimeData()->urls();
-        if (!urls.isEmpty()) {
-            QString filePath = urls.first().toLocalFile();
-            //processDroppedImage(filePath);
-            if (isAudioMode) {
-                processDroppedAudio(filePath);
-            } else {
-                processDroppedImage(filePath);
-            }
-        }
-
-        event->acceptProposedAction();
-    }
-
-    void MainWindow::closeEvent(QCloseEvent *event)
-    {
-
-    }
-
-    void MainWindow::stopCamera()
-    {
-        if (camera) {
-            camera->stop();
-            delete camera;
-            camera = nullptr;
-        }
-        statusBar()->showMessage("Camera stopped");
-    }
-    /*
-void MainWindow::onCameraButtonClicked()
-{
-    if (camera) {
-        stopCamera();
-    } else {
-        setupCamera();
-    }
-}
-*/
-
-    void MainWindow::onCameraButtonClicked()
-    {
-        return;
-
-        if(!isPRTMode)
-        {
-            QMessageBox::information(this, "PRT Mode Required",
-            "Camera scanning is only available in PRT Mode.\n"
-            "Please enable the 'PRT Mode' checkbox to scan beautiful PRT codes.");
-            return;
-        }
-
-        if (camera) {
-            stopCamera();
-            Constants::isCameraOn = false;
-
-            cameraButton->setText(" Scan PRT Code");
-        } else {
-            setupCamera();
-            Constants::isCameraOn = true;
-            cameraButton->setText("⏹️ Stop Camera");
-        }
-    }
-
-
-    void MainWindow::processDroppedImage(const QString& filePath)
-    {
-        if (filePath.isEmpty()) return;
-
-        // Check if it's a supported image format
-        if (!filePath.endsWith(".png", Qt::CaseInsensitive) &&
-        !filePath.endsWith(".jpg", Qt::CaseInsensitive) &&
-        !filePath.endsWith(".jpeg", Qt::CaseInsensitive)) {
-            statusBar()->showMessage("Unsupported file format");
-            return;
-        }
-
-        resetAll();
-
-        // Load the image
-        QImage image;
-        if (!image.load(filePath)) {
-            statusBar()->showMessage("Failed to load image");
-            return;
-        }
-
-        // Convert to suitable format
-        /*
-        if (image.format() != QImage::Format_ARGB32 &&
-            image.format() != QImage::Format_RGB32) {
-            image = image.convertToFormat(QImage::Format_ARGB32);
-        }
-    */
-        // DETECTION: Extract data and check headers
-        QByteArray extractedData = engine->extractDataFromImage(image);
-
-        bool isPRTImage = false;
-        bool isEncryptedStego = false;
-        bool isRegularStego = false;
-
-        if (!extractedData.isEmpty()) {
-            // Check for PRT header
-            if (extractedData.size() >= 4 &&
-            extractedData.startsWith("PRT") && extractedData[3] == 0x01) {
-                isPRTImage = true;
-                prtCheckBox->setChecked(true);
-            }
-            // Check for encrypted data
-            else if (extractedData.startsWith("ENCR")) {
-                isEncryptedStego = true;
-            }
-            // Regular stego data (no specific header)
-            else {
-                isRegularStego = true;
-            }
-        }
-
-        // Route to appropriate tab
-        if (isPRTImage || isEncryptedStego || isRegularStego) {
-            // Load in extract tab (any type of stego image)
-            stegoImage = image;
-            originalStegoImage = image;
+        stegoImage.load(fileName);
+        if (!stegoImage.isNull()) {
+            originalStegoImage = stegoImage;
             stegoZoom = 1.0;
+            // For detection only - check if it's PRT
+            QByteArray detectionData = engine->extractDataFromImage(stegoImage);
+            isPRTMode = (detectionData.size() >= 4 &&
+                         detectionData.startsWith("PRT") && detectionData[3] == 0x01);
+
+            prtCheckBox->setChecked(isPRTMode);
+
+            //
             QPixmap pixmap = QPixmap::fromImage(stegoImage);
             pixmap = pixmap.scaled(stegoImageLabel->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
             stegoImageLabel->setPixmap(pixmap);
             saveExtractedFileButton->setEnabled(true);
-            extractButton->setEnabled(true);
-
-            if (extractTab) {
-                tabWidget->setCurrentWidget(extractTab);
-            }
-
-            // Show appropriate message
-            if (isPRTImage) {
-                statusBar()->showMessage("PRT artistic code loaded: " + filePath);
-            } else if (isEncryptedStego) {
-                statusBar()->showMessage("Encrypted stego image loaded: " + filePath);
-            } else {
-                statusBar()->showMessage("Stego image loaded: " + filePath);
-            }
+            //extractButton->setEnabled(true);
+            statusBar()->showMessage("Image loaded successfully: " + fileName);
+            currentToExtractPath = fileName;
+        } else {
+            statusBar()->showMessage("Failed to load image");
+            QMessageBox::warning(this, "Error", "Failed to load the selected image");
         }
-        else {
-            // Load in hide tab as carrier image
-            originalImage = image;
-            originalCarrierImage = image;
+    });
+
+    connect(saveExtractedFileButton, &QPushButton::clicked, [this]() {
+
+        // === AUDIO MODE CHECK FIRST ===
+        if (isAudioMode) {
+            extractDataFromAudio();  // Call audio extraction method
+            return;
+        }
+
+        if (stegoImage.isNull()) {
+            QMessageBox::warning(this, "Error", "Please load an image with hidden data first");
+            return;
+        }
+
+        // Extract raw data from the image
+        QByteArray extractedData = isPRTMode
+                ? engine->extractPRTData(stegoImage)
+                : engine->extractDataFromImage(stegoImage);
+
+        if (extractedData.isEmpty()) {
+            QMessageBox::warning(this, "Error", "No hidden data found or data extraction failed");
+            return;
+        }
+
+        // Check if data is encrypted
+        if (!isPRTMode && extractedData.startsWith("ENCR")) {
+            QByteArray decryptedData;
+            bool passphraseUsed = false;
+
+            // Try remembered passphrase first
+            if (hasRememberedPassphrase) {
+                decryptedData = engine->decryptData(extractedData.mid(4), rememberedPassphrase);
+                if (!decryptedData.isEmpty()) passphraseUsed = true;
+            }
+
+            // If decryption failed, ask user
+            while (!passphraseUsed) {
+                PassphraseDialog dialog(false, this);
+                if (dialog.exec() != QDialog::Accepted) return; // User canceled
+
+                QString passphrase = dialog.getPassphrase();
+                decryptedData = engine->decryptData(extractedData.mid(4), passphrase);
+                if (!decryptedData.isEmpty()) {
+                    if (dialog.rememberPassphrase()) {
+                        rememberedPassphrase = passphrase;
+                        hasRememberedPassphrase = true;
+                    }
+                    break;
+                } else {
+                    QMessageBox::warning(this, "Error", "Decryption failed. Check your passphrase.");
+                }
+            }
+
+            extractedData = decryptedData;
+        }
+
+        // --- Extract filename and content ---
+        int fileNameLen = static_cast<unsigned char>(extractedData[0]); // first byte = filename length
+
+        QByteArray fileContent;
+        QString extractedFileName;
+
+        if (fileNameLen == 0) {
+            // It's pure text data
+            extractedFileName = QString("extracted_text_%1.txt")
+                    .arg(QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss"));
+            fileContent = extractedData.mid(1); // Skip the 0 marker
+        } else {
+            // It's a file with filename
+            extractedFileName = QString::fromUtf8(extractedData.mid(1, fileNameLen));
+            fileContent = extractedData.mid(1 + fileNameLen);
+        }
+        QRegularExpression invalidChars(R"([:,'"])");  // includes colon, comma, single and double quote
+        // --- Simple fix: if filename contains ":", use default ---
+
+        if (extractedFileName.contains(invalidChars)) {
+            extractedFileName = QString("extracted_data_%1.txt")
+                    .arg(QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss"));
+        }
+
+        // --- Prepare default save path ---
+        QString defaultFilePath = QDir(Constants::extractedImagesPath).filePath(extractedFileName);
+
+        // --- Ask user where to save ---
+        QString savePath = QFileDialog::getSaveFileName(this, "Save Extracted File", defaultFilePath);
+
+        // If user cancels, use default
+        if (savePath.isEmpty()) savePath = defaultFilePath;
+
+        // --- Write to disk ---
+        QFile outFile(savePath);
+        if (outFile.open(QIODevice::WriteOnly)) {
+            qint64 written = outFile.write(fileContent);
+            outFile.close();
+
+            if (written == fileContent.size()) {
+                statusBar()->showMessage("Extracted file saved as: " + savePath);
+                QMessageBox::information(this, "File Saved",
+                                         "Extracted file saved successfully:\n" + savePath);
+
+                // If the file is text, display it
+                QString text = QString::fromUtf8(fileContent);
+                bool isText = true;
+                for (const QChar &c : text) {
+                    if (!c.isPrint() && !c.isSpace()) {
+                        isText = false;
+                        break;
+                    }
+                }
+                if (isText) {
+                    if (text.length() > 10000) {
+                        extractedTextOutput->clear();
+                        extractedTextOutput->setPlainText(
+                                    QString("Extracted text is too long to display.\n"
+                                            "Please access it by opening:\n%1")
+                                    .arg(savePath)
+                                    );
+                    } else {
+                        extractedTextOutput->setPlainText(text);
+                    }
+                }
+
+            } else {
+                QMessageBox::warning(this, "Error", "Could not write all data to disk");
+            }
+        } else {
+            QMessageBox::warning(this, "Error", "Failed to open file for writing");
+        }
+    });
+
+    // Add this connection to update capacity when text changes
+    //connect(textInput, &QPlainTextEdit::textChanged, this, &MainWindow::updateCapacityStatus);
+
+    // Add this connection to update capacity when file path changes
+    //connect(filePathInput, &QLineEdit::textChanged, this, &MainWindow::updateCapacityStatus);
+
+    connect(textInput, &QPlainTextEdit::textChanged, this, [this](){
+        if (isAudioMode)
+            updateAudioCapacity();
+        else
+            updateCapacityStatus();
+    });
+
+    connect(filePathInput, &QLineEdit::textChanged, this, [this](){
+        if (isAudioMode)
+            updateAudioCapacity();
+        else
+            updateCapacityStatus();
+    });
+
+    connect(cameraButton, &QPushButton::clicked, this, &MainWindow::onCameraButtonClicked);
+    connect(clipboardButton, &QPushButton::clicked, [this] {
+        QApplication::clipboard()->setText(extractedTextOutput->toPlainText());
+        statusBar()->showMessage(" Copied to clipboard!");
+    });
+    connect(resetButton, &QPushButton::clicked, this, &MainWindow::resetAll);
+
+}
+
+void MainWindow::openCarrierImage() {
+
+    QString initialPath = Constants::imagesPath;
+
+    if (!QDir(initialPath).exists()) {
+        initialPath = Constants::imagesPath;
+    }
+
+    QString fileName = QFileDialog::getOpenFileName(this, "Open Carrier Image",
+                                                    initialPath,
+                                                    "Image Files (*.png *.jpg *.bmp)");
+    if (!fileName.isEmpty()) {
+        originalImage.load(fileName);
+        if (!originalImage.isNull()) {
+            // Convert to a format that supports alpha channel if needed
+            if (originalImage.format() != QImage::Format_ARGB32 &&
+                    originalImage.format() != QImage::Format_RGB32) {
+                originalImage = originalImage.convertToFormat(QImage::Format_ARGB32);
+            }
+
+            originalCarrierImage = originalImage;
             carrierZoom = 1.0;
+
             QPixmap pixmap = QPixmap::fromImage(originalImage);
             pixmap = pixmap.scaled(originalImageLabel->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
             originalImageLabel->setPixmap(pixmap);
@@ -1337,736 +908,1260 @@ void MainWindow::onCameraButtonClicked()
             hideButton->setEnabled(true);
             saveImageButton->setEnabled(false);
             updateCapacityStatus();
-
-            if (hideTab) {
-                tabWidget->setCurrentWidget(hideTab);
-            }
-            statusBar()->showMessage("Carrier image loaded: " + filePath);
-            currentCarrierPath = filePath;
+            currentCarrierPath = fileName;
+            statusBar()->showMessage("Image loaded successfully");
+        } else {
+            statusBar()->showMessage("Failed to load image");
         }
     }
+}
 
-    bool MainWindow::eventFilter(QObject *obj, QEvent *event)
-    {
-        if (event->type() == QEvent::MouseButtonPress) {
-            QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
-            if (mouseEvent->button() == Qt::LeftButton) {
 
-                // Clear previous selections
-                originalImageLabel->setStyleSheet("");
-                modifiedImageLabel->setStyleSheet("");
-                stegoImageLabel->setStyleSheet("");
-
-                // Highlight the clicked label
-                QLabel *label = qobject_cast<QLabel*>(obj);
-                if (label) {
-                    label->setStyleSheet("border: 3px solid #f0d8b0;");
-                }
-
-                // Show corresponding path
-                if (obj == originalImageLabel)
-                statusBar()->showMessage(currentCarrierPath);
-                else if (obj == modifiedImageLabel)
-                statusBar()->showMessage(currentModifiedPath);
-                else if (obj == stegoImageLabel)
-                statusBar()->showMessage(currentToExtractPath);
-
-                return true;
-            }
-        }
-        else if (event->type() == QEvent::ContextMenu) {
-
-            if(isAudioMode) return false;
-
-            QContextMenuEvent *contextMenuEvent = static_cast<QContextMenuEvent*>(event);
-
-            if (obj == originalImageLabel && !originalImage.isNull()) {
-                QMenu* menu = createImageContextMenu(originalImageLabel, originalImage);
-                menu->exec(contextMenuEvent->globalPos());
-                delete menu;
-                return true;
-            }
-            else if (obj == modifiedImageLabel && !modifiedImage.isNull()) {
-                QMenu* menu = createImageContextMenu(modifiedImageLabel, modifiedImage);
-                menu->exec(contextMenuEvent->globalPos());
-                delete menu;
-                return true;
-            }
-            else if (obj == stegoImageLabel && !originalStegoImage.isNull()) {
-                QMenu* menu = createImageContextMenu(stegoImageLabel, originalStegoImage);
-                menu->exec(contextMenuEvent->globalPos());
-                delete menu;
-                return true;
-            }
-        }
-        else if (event->type() == QEvent::Resize) {
-            // Handle resize to apply current aspect mode
-            if (obj == originalImageLabel && !originalImage.isNull()) {
-                QPixmap pixmap = QPixmap::fromImage(originalImage);
-                originalImageLabel->setPixmap(pixmap.scaled(
-                originalImageLabel->size(),
-                m_originalAspectMode,
-                Qt::SmoothTransformation
-                ));
-            }
-            else if (obj == modifiedImageLabel && !modifiedImage.isNull()) {
-                QPixmap pixmap = QPixmap::fromImage(modifiedImage);
-                modifiedImageLabel->setPixmap(pixmap.scaled(
-                modifiedImageLabel->size(),
-                m_modifiedAspectMode,
-                Qt::SmoothTransformation
-                ));
-            }
-            else if (obj == stegoImageLabel && !originalStegoImage.isNull()) {
-                QPixmap pixmap = QPixmap::fromImage(originalStegoImage);
-                stegoImageLabel->setPixmap(pixmap.scaled(
-                stegoImageLabel->size(),
-                m_stegoAspectMode,
-                Qt::SmoothTransformation
-                ));
-            }
-        }
-
-        return QMainWindow::eventFilter(obj, event);
+void MainWindow::saveModifiedImage() {
+    if (modifiedImage.isNull()) {
+        QMessageBox::warning(this, "Error", "No modified image to save");
+        return;
     }
 
 
-    void MainWindow::updatePannedImage(QLabel *label, ImagePan &pan)
-    {
-        QImage *sourceImage = nullptr;
-        double *zoomLevel = nullptr;
 
-        if (label == stegoImageLabel && !originalStegoImage.isNull()) {
-            sourceImage = &originalStegoImage;
-            zoomLevel = &stegoZoom;
-        }
-        else if (label == originalImageLabel && !originalCarrierImage.isNull()) {
-            sourceImage = &originalCarrierImage;
-            zoomLevel = &carrierZoom;
-        }
-        else if (label == modifiedImageLabel && !modifiedImage.isNull()) {
-            sourceImage = &modifiedImage;
-            zoomLevel = &modifiedZoom;
-        }
+    // Create a default filename with timestamp
+    QString defaultFilename = QString("%1/stego_image_%2.png")
+            .arg(Constants::fusedImagesPath)
+            .arg(QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss"));
 
-        if (!sourceImage || !zoomLevel) return;
+    // Create and configure the file dialog
+    QFileDialog fileDialog(this, "Save Modified Image", defaultFilename, "PNG Image (*.png)");
+    fileDialog.setAcceptMode(QFileDialog::AcceptSave);
+    fileDialog.setDefaultSuffix("png");
 
-        // Calculate zoomed size
-        QSize zoomedSize = sourceImage->size() * (*zoomLevel);
+    // Show the dialog and get the result
+    if (fileDialog.exec() != QDialog::Accepted) {
+        return;
+    }
 
-        // Create pixmap of label size
-        QPixmap displayPixmap(label->size());
-        displayPixmap.fill(Qt::black); // or transparent
+    // Get the selected file path
+    QString fileName = fileDialog.selectedFiles().first();
+    if (fileName.isEmpty()) {
+        return;
+    }
 
-        QPainter painter(&displayPixmap);
-
-        // Draw zoomed image with pan offset
-        QPixmap zoomedPixmap = QPixmap::fromImage(*sourceImage)
-        .scaled(zoomedSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-
-        painter.drawPixmap(pan.currentOffset, zoomedPixmap);
-        painter.end();
-
-        label->setPixmap(displayPixmap);
+    // Ensure PNG extension
+    if (!fileName.endsWith(".png", Qt::CaseInsensitive)) {
+        fileName += ".png";
     }
 
 
-    QWidget* MainWindow::createAudioPlayerBar()
-    {
-        // Create toolbar widget
-        m_audioToolbar = new QWidget();
-        m_audioToolbar->setObjectName("audioToolbar");
-        m_audioToolbar->setFixedHeight(35);
-        m_audioToolbar->setVisible(false);  // Hidden by default
+    // Ensure the directory exists
+    //QDir().mkpath(QFileInfo(fileName).absolutePath());
 
-        // Create toolbar layout
-        QHBoxLayout *toolbarLayout = new QHBoxLayout(m_audioToolbar);
-        toolbarLayout->setContentsMargins(10, 5, 10, 5);
-        toolbarLayout->setSpacing(10);
+    // Show a "please wait" message in the status bar immediately
+    statusBar()->showMessage("Saving image, please wait...");
+    QApplication::processEvents();
 
+    // Create and show progress dialog
+    QProgressDialog progress("Saving image...", nullptr, 0, 0, this);
+    progress.setWindowModality(Qt::WindowModal);
+    progress.setCancelButton(nullptr);
+    progress.setMinimumDuration(0);
+    progress.show();
+    QApplication::processEvents();
 
-        m_openMusicButton = new QPushButton(m_audioToolbar);
-        m_openMusicButton->setObjectName("openMusicButton");
-        m_openMusicButton->setIcon(QIcon(":/resources/icons/music.svg"));
-        m_openMusicButton->setFixedSize(44, 24);
-        m_openMusicButton->setToolTip("Load audio files");
+    // Use a separate thread for saving to keep UI responsive
+    QFuture<bool> future = QtConcurrent::run([this, fileName]() {
+        return modifiedImage.save(fileName, "PNG", 5);
+    });
 
-        // === PLAY/PAUSE/STOP BUTTONS ===
-        m_audioPlayButton = new QPushButton(m_audioToolbar);
-        m_audioPlayButton->setObjectName("audioPlayButton");
-        m_audioPlayButton->setIcon(QIcon(":/resources/icons/play.svg"));
-        m_audioPlayButton->setFixedSize(32, 24);
-        m_audioPlayButton->setToolTip("Play");
+    // Create a watcher to monitor the save operation
+    QFutureWatcher<bool> watcher;
+    QObject::connect(&watcher, &QFutureWatcher<bool>::finished, [&]() {
+        progress.close();
 
-        m_audioPauseButton = new QPushButton(m_audioToolbar);
-        m_audioPauseButton->setObjectName("audioPauseButton");
-        m_audioPauseButton->setIcon(QIcon(":resources/icons/pause.svg"));
-        m_audioPauseButton->setFixedSize(24, 24);
-        m_audioPauseButton->setToolTip("Pause");
-
-        m_audioStopButton = new QPushButton(m_audioToolbar);
-        m_audioStopButton->setObjectName("audioStopButton");
-        m_audioStopButton->setIcon(QIcon(":/resources/icons/square.svg"));
-        m_audioStopButton->setFixedSize(24, 24);
-        m_audioStopButton->setToolTip("Stop");
-
-        // === VOLUME SLIDER ===
-        QLabel *volLabel = new QLabel("Vol:", m_audioToolbar);
-        //volLabel->setStyleSheet("color: white;");
-
-        m_audioVolumeSlider = new QSlider(Qt::Horizontal, m_audioToolbar);
-        m_audioVolumeSlider->setObjectName("audioVolumeSlider");
-        m_audioVolumeSlider->setMinimumWidth(100);
-        m_audioVolumeSlider->setMaximumWidth(150);
-        m_audioVolumeSlider->setRange(0, 100);
-        m_audioVolumeSlider->setValue(70);
-
-        m_audioVolumeLabel = new QLabel("70%", m_audioToolbar);
-        //m_audioVolumeLabel->setStyleSheet("color: white; min-width: 35px;");
-
-        // === DURATION SLIDER ===
-        m_audioProgressSlider = new QSlider(Qt::Horizontal, m_audioToolbar);
-        m_audioProgressSlider->setObjectName("audioProgressSlider");
-        m_audioProgressSlider->setRange(0, 100);
-        m_audioProgressSlider->setValue(0);
-
-        // === TIME LABEL ===
-        m_audioTimeLabel = new QLabel("00:00 / 00:00", m_audioToolbar);
-        m_audioTimeLabel->setObjectName("audioTimeLabel");
-        //m_audioTimeLabel->setStyleSheet("color: white; font-size: 12px; min-width: 100px;");
-
-        // === ADD ALL TO LAYOUT ===
-        toolbarLayout->addWidget(m_openMusicButton);
-
-        toolbarLayout->addWidget(m_audioPlayButton);
-        toolbarLayout->addWidget(m_audioPauseButton);
-        toolbarLayout->addWidget(m_audioStopButton);
-
-        toolbarLayout->addSpacing(20);  // Some breathing room
-
-        toolbarLayout->addWidget(volLabel);
-        toolbarLayout->addWidget(m_audioVolumeSlider);
-        toolbarLayout->addWidget(m_audioVolumeLabel);
-
-        toolbarLayout->addSpacing(10);
-
-        toolbarLayout->addWidget(m_audioProgressSlider, 1);  // Stretches
-        toolbarLayout->addWidget(m_audioTimeLabel);
-
-        // === STYLESHEET (simplified) ===
-        QString toolbarStyle =
-        "#audioToolbar {"
-        "    background-color: rgba(0, 0, 0, 220);"
-        "    border-top: 1px solid rgba(255, 255, 255, 50);"
-        "    padding: 2px 8px;"
-        "    spacing: 4px;"
-        "}"
-        "#audioToolbar QLabel {"
-        "    color: white;"
-        "    font-size: 12px;"
-        "}"
-        "#audioToolbar QPushButton {"
-        "    color: white;"
-        "    background-color: rgba(255, 255, 255, 30);"
-        "    border: none;"
-        "    border-radius: 3px;"
-        "    padding: 4px;"
-        "}"
-        "#audioToolbar QPushButton:hover {"
-        "    background-color: rgba(255, 255, 255, 50);"
-        "}"
-        "#audioToolbar QPushButton:pressed {"
-        "    background-color: rgba(255, 255, 255, 70);"
-        "}"
-        "#audioToolbar QSlider::groove:horizontal {"
-        "    height: 3px;"
-        "    background: rgba(255, 255, 255, 50);"
-        "    border-radius: 1.5px;"
-        "}"
-        "#audioToolbar QSlider::handle:horizontal {"
-        "    background: white;"
-        "    width: 10px;"
-        "    height: 10px;"
-        "    margin: -3.5px 0;"
-        "    border-radius: 5px;"
-        "}";
-
-        //m_audioToolbar->setStyleSheet(toolbarStyle);
-
-        // === CONNECTIONS (to AudioPlayer) ===
-
-        connect(m_openMusicButton, &QPushButton::clicked, this, [this](){
-            QString fileName = QFileDialog::getOpenFileName(
-            this,
-            "Select Music File",
-            Constants::appDirPath,
-            "Audio Files (*.mp3 *.wav *.ogg *.flac *.aac *.m4a *.wma);;All Files (*.*)"
-            );
-
-            if (!fileName.isEmpty()) {
-                audioPlayer->playFile(fileName);
-            }
-        });
-
-        // Play/Pause/Stop buttons
-        connect(m_audioPlayButton, &QPushButton::clicked,
-        audioPlayer, &AudioPlayer::play);
-        connect(m_audioPauseButton, &QPushButton::clicked,
-        audioPlayer, &AudioPlayer::pause);
-        connect(m_audioStopButton, &QPushButton::clicked,
-        audioPlayer, &AudioPlayer::stop);
-
-        // Volume control
-        connect(m_audioVolumeSlider, &QSlider::valueChanged,
-        audioPlayer, &AudioPlayer::setVolume);
-        connect(audioPlayer, &AudioPlayer::volumeChanged,
-        this, &MainWindow::onAudioVolumeChanged);
-
-        // Progress slider (use sliderReleased for seeking)
-        connect(m_audioProgressSlider, &QSlider::sliderReleased, this, [this](){
-            int percent = m_audioProgressSlider->value();
-            qint64 duration = audioPlayer->duration();
-            qint64 newPosition = (duration * percent) / 100;
-            audioPlayer->setPosition(newPosition);
-        });
-
-        // Player signals to UI
-        connect(audioPlayer, &AudioPlayer::positionChanged,
-        this, &MainWindow::onAudioPositionChanged);
-        connect(audioPlayer, &AudioPlayer::durationChanged,
-        this, &MainWindow::onAudioDurationChanged);
-        connect(audioPlayer, &AudioPlayer::mediaLoaded,
-        this, &MainWindow::onMediaLoaded);
-        connect(audioPlayer, &AudioPlayer::playbackStarted,
-        this, &MainWindow::onPlaybackStarted);
-        connect(audioPlayer, &AudioPlayer::playbackPaused,
-        this, &MainWindow::onPlaybackPaused);
-        connect(audioPlayer, &AudioPlayer::playbackStopped,
-        this, &MainWindow::onPlaybackStopped);
-
-        return m_audioToolbar;
-
-    }
-
-
-    void MainWindow::openAudioCarrier()
-    {
-        QString initialAudioPath = Constants::imagesPath;
-
-        if (!QDir(initialAudioPath).exists()) {
-            initialAudioPath = Constants::appDirPath;
+        bool success = future.result();
+        if (success) {
+            statusBar()->showMessage("Image saved successfully to: " + fileName);
+            currentModifiedPath = fileName;
+        } else {
+            QMessageBox::warning(this, "Error", "Could not save the image");
         }
+    });
 
-        QString fileName = QFileDialog::getOpenFileName(this, "Select Audio Carrier",
-        initialAudioPath,
-        "Audio Files (*.mp3 *.wav *.flac *.ogg)");
-        if (fileName.isEmpty()) return;
+    // Start watching the future
+    watcher.setFuture(future);
 
-        statusBar()->showMessage("Loading audio file...");
+    // Wait for the operation to complete (with event processing)
+    while (!future.isFinished()) {
         QApplication::processEvents();
+        QThread::msleep(50);
+    }
+}
 
-        // Convert to WAV using FFmpeg
-        QByteArray wavData;
-        if (!ffmpeg->convertToWav(fileName, wavData)) {
-            QMessageBox::warning(this, "Error", "Could not convert audio file to WAV format");
-            return;
+void MainWindow::updateCapacityStatus()
+{
+    if (originalImage.isNull()) {
+        capacityLabel->setText("Capacity: 0/0 bytes (0%)");
+        return;
+    }
+
+    int capacity = engine->calculateImageCapacity(originalImage);
+    int dataSize = 0;
+
+    if (isTextInput) {
+        dataSize = textInput->toPlainText().toUtf8().size();
+    } else {
+        QFile file(filePathInput->text());
+        if (file.exists() && file.open(QIODevice::ReadOnly)) {
+            dataSize = file.size();
+            file.close();
         }
+    }
 
-        // Get metadata
-        auto info = ffmpeg->getAudioInfoFromData(wavData);
-        if (!info.isValid) {
-            QMessageBox::warning(this, "Error", "Could not read audio file information");
-            return;
+    // If encryption is checked, estimate the encrypted size (add ~30% for encryption overhead)
+    if (encryptionCheckBox->isChecked() && dataSize > 0) {
+        dataSize = dataSize + 32 + 4; // 32 bytes for salt+IV, 4 bytes for "ENCR" marker
+        // Add padding to account for AES block size (16 bytes)
+        int remainder = dataSize % 16;
+        if (remainder > 0) {
+            dataSize += (16 - remainder);
         }
+    }
 
-        // Store data
-        m_currentAudioPath = fileName;
-        m_currentAudioData = wavData;
-        m_currentSampleRate = info.sampleRate;
-        m_currentChannels = info.channels;
-        m_currentBitsPerSample = info.bitsPerSample;
-        m_currentDuration = info.durationSeconds;
-        m_modifiedAudioData.clear();
+    double percentage = (capacity > 0) ? (dataSize * 100.0 / capacity) : 0;
+    capacityLabel->setText(QString("Capacity: %1/%2 bytes (%3%)").arg(dataSize).arg(capacity).arg(percentage, 0, 'f', 1));
 
-        // Update UI (reuse existing labels but change text)
-        originalImageLabel->setText(QString("Audio: %1\n%2 Hz, %3 ch, %4 bit, %5 s")
-        .arg(QFileInfo(fileName).fileName())
-        .arg(info.sampleRate)
-        .arg(info.channels)
-        .arg(info.bitsPerSample)
-        .arg(info.durationSeconds));
-        modifiedImageLabel->setText("Modified Audio (not yet created)");
+    // Update the hide button status based on capacity
+    hideButton->setEnabled(capacity > 0 && dataSize > 0 && dataSize <= capacity);
+}
 
-        // Clear any pixmaps
-        originalImageLabel->setPixmap(QPixmap());
-        modifiedImageLabel->setPixmap(QPixmap());
-        QIcon placeholderIcon(":/resources/icons/music.svg");
-        originalImageLabel->setPixmap(placeholderIcon.pixmap(originalImageLabel->size()));
-        //originalImageLabel->setText(fileName);
-        currentCarrierPath = fileName;
+
+/*
+void MainWindow::toggleInputMethod()
+{
+isTextInput = textInputRadio->isChecked();
+
+textInput->setEnabled(isTextInput);
+filePathInput->setEnabled(!isTextInput);
+browseFileButton->setEnabled(!isTextInput);
+
+updateCapacityStatus();
+}
+*/
+
+void MainWindow::toggleInputMethod()
+{
+    isTextInput = textInputRadio->isChecked();
+
+    textInput->setEnabled(isTextInput);
+    filePathInput->setEnabled(!isTextInput);
+    browseFileButton->setEnabled(!isTextInput);
+
+    if (isAudioMode) {
         updateAudioCapacity();
+        hideButton->setEnabled(!m_currentAudioData.isEmpty());
+    } else {
+        updateCapacityStatus();  // image mode
+        hideButton->setEnabled(!originalImage.isNull());
+    }
+}
+
+
+void MainWindow::selectDataFile() {
+
+
+    QString fileName = QFileDialog::getOpenFileName(this, "Select File to Hide", Constants::imagesPath);
+
+    if (!fileName.isEmpty()) {
+        filePathInput->setText(fileName);
+        if(isAudioMode){
+            updateAudioCapacity();
+        }else {
+            updateCapacityStatus();
+        }
+    }
+}
+
+//camera
+void MainWindow::setupCamera()
+{
+
+    // Get available cameras
+    const QList<QCameraDevice> cameras = QMediaDevices::videoInputs();
+
+
+    if (!cameras.isEmpty()) {
+        camera = new QCamera(cameras.first());
+
+
+        videoSink = new QVideoSink(this);
+
+        QMediaCaptureSession *captureSession = new QMediaCaptureSession;
+
+        captureSession->setCamera(camera);
+
+        captureSession->setVideoSink(videoSink);
+
+        connect(videoSink, &QVideoSink::videoFrameChanged,
+                this, &MainWindow::processCameraFrame);
+
+        camera->start();
+
+        statusBar()->showMessage("Camera started - scanning for PRT codes...");
+    } else {
+        QMessageBox::warning(this, "No Camera", "No camera device found!");
+    }
+}
+
+
+void MainWindow::processCameraFrame(const QVideoFrame &frame)
+{
+    static int frameCount = 0;
+    if (++frameCount % 5 != 0) return;
+
+    QImage image = frame.toImage();
+
+    QByteArray data = engine->extractPRTData(image);
+    if (!data.isEmpty()) {
+
+        // THREAD-SAFE UI UPDATE
+        QMetaObject::invokeMethod(this, [this, data]() {
+            QString text = QString::fromUtf8(data);
+            extractedTextOutput->setPlainText(text);
+            statusBar()->showMessage("PRT code scanned successfully!");
+
+            // Optional: Show success message like in file mode
+            QMessageBox::information(this, "PRT Code Scanned",
+                                     "PRT code successfully scanned from camera!\n\nContent: " + text);
+
+            stopCamera();
+        }, Qt::QueuedConnection);
+
+        return; // Important: return after queuing the update
+    }
+}
+
+void MainWindow::resetAll()
+{
+
+    // Stop camera if running
+    if (camera) {
+        stopCamera();
+    }
+
+    // ===== HIDE TAB =====
+
+    // Clear image previews
+    originalImageLabel->clear();
+    originalImageLabel->setText("Original Image");
+    modifiedImageLabel->clear();
+    modifiedImageLabel->setText("Modified Image");
+
+    // Clear image data
+    originalImage = QImage();
+    modifiedImage = QImage();
+
+    // Reset data input
+    textInput->clear();
+    filePathInput->clear();
+    textInputRadio->setChecked(true);
+    filePathInput->setEnabled(false);
+    browseFileButton->setEnabled(false);
+
+    // Reset encryption
+    encryptionCheckBox->setChecked(false);
+    audioStegCheckBox->setChecked(false);
+    isAudioMode = false;
+    // Reset buttons and labels
+    hideButton->setEnabled(false);
+    saveImageButton->setEnabled(false);
+    capacityLabel->setText("Capacity: 0/0 bytes (0%)");
+
+    // ===== EXTRACT TAB =====
+
+    // Clear stego image preview
+    stegoImageLabel->clear();
+    stegoImageLabel->setText("Steganographic Image");
+
+    // Clear extracted data
+    extractedTextOutput->clear();
+    stegoImage = QImage();
+
+    // Reset extract buttons
+    extractButton->setEnabled(false);
+    saveExtractedFileButton->setEnabled(false);
+
+    // Reset camera button text if needed
+    cameraButton->setText("Start Camera");
+
+
+
+    // Clear any remembered passphrase
+    hasRememberedPassphrase = false;
+    rememberedPassphrase.clear();
+    //prtCheckBox->setChecked(false);
+    statusBar()->showMessage("All fields reset");
+
+    // Remove all selection highlights
+    originalImageLabel->setStyleSheet("");
+    modifiedImageLabel->setStyleSheet("");
+    stegoImageLabel->setStyleSheet("");
+
+    if(m_audioToolbar->isVisible()) {
+        toggleAudioBarAction->setChecked(false);
+        if(audioPlayer && audioPlayer->isPlaying()) {
+            audioPlayer->stop();
+        }
+        m_audioToolbar->setVisible(false);
+    }
+}
+
+
+void MainWindow::dragEnterEvent(QDragEnterEvent *event)
+{
+    if (!event->mimeData()->hasUrls()) return;
+
+    QList<QUrl> urls = event->mimeData()->urls();
+    if (urls.isEmpty()) return;
+
+    QString filePath = urls.first().toLocalFile();
+    if (filePath.isEmpty()) return;
+
+    // Accept if image
+    bool isImage = filePath.endsWith(".png", Qt::CaseInsensitive) ||
+            filePath.endsWith(".jpg", Qt::CaseInsensitive) ||
+            filePath.endsWith(".jpeg", Qt::CaseInsensitive);
+
+    // Accept if audio
+    bool isAudio = filePath.endsWith(".mp3", Qt::CaseInsensitive) ||
+            filePath.endsWith(".wav", Qt::CaseInsensitive) ||
+            filePath.endsWith(".flac", Qt::CaseInsensitive) ||
+            filePath.endsWith(".ogg", Qt::CaseInsensitive);
+
+    if (isImage || isAudio) {
+        event->acceptProposedAction();
+    }
+}
+
+void MainWindow::dropEvent(QDropEvent *event)
+{
+    QList<QUrl> urls = event->mimeData()->urls();
+    if (!urls.isEmpty()) {
+        QString filePath = urls.first().toLocalFile();
+        //processDroppedImage(filePath);
+        if (isAudioMode) {
+            processDroppedAudio(filePath);
+        } else {
+            processDroppedImage(filePath);
+        }
+    }
+
+    event->acceptProposedAction();
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+
+}
+
+void MainWindow::stopCamera()
+{
+    if (camera) {
+        camera->stop();
+        delete camera;
+        camera = nullptr;
+    }
+    statusBar()->showMessage("Camera stopped");
+}
+/*
+void MainWindow::onCameraButtonClicked()
+{
+if (camera) {
+stopCamera();
+} else {
+setupCamera();
+}
+}
+*/
+
+void MainWindow::onCameraButtonClicked()
+{
+    return;
+
+    if(!isPRTMode)
+    {
+        QMessageBox::information(this, "PRT Mode Required",
+                                 "Camera scanning is only available in PRT Mode.\n"
+                                 "Please enable the 'PRT Mode' checkbox to scan beautiful PRT codes.");
+        return;
+    }
+
+    if (camera) {
+        stopCamera();
+        Constants::isCameraOn = false;
+
+        cameraButton->setText(" Scan PRT Code");
+    } else {
+        setupCamera();
+        Constants::isCameraOn = true;
+        cameraButton->setText("⏹️ Stop Camera");
+    }
+}
+
+
+void MainWindow::processDroppedImage(const QString& filePath)
+{
+    if (filePath.isEmpty()) return;
+
+    // Check if it's a supported image format
+    if (!filePath.endsWith(".png", Qt::CaseInsensitive) &&
+            !filePath.endsWith(".jpg", Qt::CaseInsensitive) &&
+            !filePath.endsWith(".jpeg", Qt::CaseInsensitive)) {
+        statusBar()->showMessage("Unsupported file format");
+        return;
+    }
+
+    resetAll();
+
+    // Load the image
+    QImage image;
+    if (!image.load(filePath)) {
+        statusBar()->showMessage("Failed to load image");
+        return;
+    }
+
+    // Convert to suitable format
+    /*
+if (image.format() != QImage::Format_ARGB32 &&
+    image.format() != QImage::Format_RGB32) {
+    image = image.convertToFormat(QImage::Format_ARGB32);
+}
+*/
+    // DETECTION: Extract data and check headers
+    QByteArray extractedData = engine->extractDataFromImage(image);
+
+    bool isPRTImage = false;
+    bool isEncryptedStego = false;
+    bool isRegularStego = false;
+
+    if (!extractedData.isEmpty()) {
+        // Check for PRT header
+        if (extractedData.size() >= 4 &&
+                extractedData.startsWith("PRT") && extractedData[3] == 0x01) {
+            isPRTImage = true;
+            prtCheckBox->setChecked(true);
+        }
+        // Check for encrypted data
+        else if (extractedData.startsWith("ENCR")) {
+            isEncryptedStego = true;
+        }
+        // Regular stego data (no specific header)
+        else {
+            isRegularStego = true;
+        }
+    }
+
+    // Route to appropriate tab
+    if (isPRTImage || isEncryptedStego || isRegularStego) {
+        // Load in extract tab (any type of stego image)
+        stegoImage = image;
+        originalStegoImage = image;
+        stegoZoom = 1.0;
+        QPixmap pixmap = QPixmap::fromImage(stegoImage);
+        pixmap = pixmap.scaled(stegoImageLabel->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        stegoImageLabel->setPixmap(pixmap);
+        saveExtractedFileButton->setEnabled(true);
+        extractButton->setEnabled(true);
+
+        if (extractTab) {
+            tabWidget->setCurrentWidget(extractTab);
+        }
+
+        // Show appropriate message
+        if (isPRTImage) {
+            statusBar()->showMessage("PRT artistic code loaded: " + filePath);
+        } else if (isEncryptedStego) {
+            statusBar()->showMessage("Encrypted stego image loaded: " + filePath);
+        } else {
+            statusBar()->showMessage("Stego image loaded: " + filePath);
+        }
+    }
+    else {
+        // Load in hide tab as carrier image
+        originalImage = image;
+        originalCarrierImage = image;
+        carrierZoom = 1.0;
+        QPixmap pixmap = QPixmap::fromImage(originalImage);
+        pixmap = pixmap.scaled(originalImageLabel->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        originalImageLabel->setPixmap(pixmap);
+        modifiedImageLabel->clear();
+        modifiedImageLabel->setText("Modified Image (not yet created)");
         hideButton->setEnabled(true);
         saveImageButton->setEnabled(false);
+        updateCapacityStatus();
 
-        statusBar()->showMessage("Loaded: " + QFileInfo(fileName).fileName());
+        if (hideTab) {
+            tabWidget->setCurrentWidget(hideTab);
+        }
+        statusBar()->showMessage("Carrier image loaded: " + filePath);
+        currentCarrierPath = filePath;
+    }
+}
+
+bool MainWindow::eventFilter(QObject *obj, QEvent *event)
+{
+    if (event->type() == QEvent::MouseButtonPress) {
+        QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
+        if (mouseEvent->button() == Qt::LeftButton) {
+
+            // Clear previous selections
+            originalImageLabel->setStyleSheet("");
+            modifiedImageLabel->setStyleSheet("");
+            stegoImageLabel->setStyleSheet("");
+
+            // Highlight the clicked label
+            QLabel *label = qobject_cast<QLabel*>(obj);
+            if (label) {
+                label->setStyleSheet("border: 3px solid #f0d8b0;");
+            }
+
+            // Show corresponding path
+            if (obj == originalImageLabel)
+                statusBar()->showMessage(currentCarrierPath);
+            else if (obj == modifiedImageLabel)
+                statusBar()->showMessage(currentModifiedPath);
+            else if (obj == stegoImageLabel)
+                statusBar()->showMessage(currentToExtractPath);
+
+            return true;
+        }
+    }
+    else if (event->type() == QEvent::ContextMenu) {
+
+        if(isAudioMode) return false;
+
+        QContextMenuEvent *contextMenuEvent = static_cast<QContextMenuEvent*>(event);
+
+        if (obj == originalImageLabel && !originalImage.isNull()) {
+            QMenu* menu = createImageContextMenu(originalImageLabel, originalImage);
+            menu->exec(contextMenuEvent->globalPos());
+            delete menu;
+            return true;
+        }
+        else if (obj == modifiedImageLabel && !modifiedImage.isNull()) {
+            QMenu* menu = createImageContextMenu(modifiedImageLabel, modifiedImage);
+            menu->exec(contextMenuEvent->globalPos());
+            delete menu;
+            return true;
+        }
+        else if (obj == stegoImageLabel && !originalStegoImage.isNull()) {
+            QMenu* menu = createImageContextMenu(stegoImageLabel, originalStegoImage);
+            menu->exec(contextMenuEvent->globalPos());
+            delete menu;
+            return true;
+        }
+    }
+    else if (event->type() == QEvent::Resize) {
+        // Handle resize to apply current aspect mode
+        if (obj == originalImageLabel && !originalImage.isNull()) {
+            QPixmap pixmap = QPixmap::fromImage(originalImage);
+            originalImageLabel->setPixmap(pixmap.scaled(
+                                              originalImageLabel->size(),
+                                              m_originalAspectMode,
+                                              Qt::SmoothTransformation
+                                              ));
+        }
+        else if (obj == modifiedImageLabel && !modifiedImage.isNull()) {
+            QPixmap pixmap = QPixmap::fromImage(modifiedImage);
+            modifiedImageLabel->setPixmap(pixmap.scaled(
+                                              modifiedImageLabel->size(),
+                                              m_modifiedAspectMode,
+                                              Qt::SmoothTransformation
+                                              ));
+        }
+        else if (obj == stegoImageLabel && !originalStegoImage.isNull()) {
+            QPixmap pixmap = QPixmap::fromImage(originalStegoImage);
+            stegoImageLabel->setPixmap(pixmap.scaled(
+                                           stegoImageLabel->size(),
+                                           m_stegoAspectMode,
+                                           Qt::SmoothTransformation
+                                           ));
+        }
     }
 
-    //=============================================================================
-    // AUDIO STEGO FILE OPENING (like openStegoImageButton lambda)
-    //=============================================================================
+    return QMainWindow::eventFilter(obj, event);
+}
 
 
+void MainWindow::updatePannedImage(QLabel *label, ImagePan &pan)
+{
+    QImage *sourceImage = nullptr;
+    double *zoomLevel = nullptr;
 
-    void MainWindow::openAudioStegoFile()
-    {
-        QString filter = "Audio Files (*.mp3 *.wav *.flac *.ogg);;All Files (*)";
-        QString fileName = QFileDialog::getOpenFileName(this, "Open Audio with Hidden Data",
-        Constants::fusedImagesPath, filter);
-        if (fileName.isEmpty()) return;
-
-        if (fileName.endsWith(".wav", Qt::CaseInsensitive)) {
-            QFile file(fileName);
-            if(!file.open(QIODevice::ReadOnly)) {
-                QMessageBox::warning(this, "Error", "Could not read file: " + file.errorString());
-                return;
-            }
-            QByteArray wholeFile = file.readAll();
-            file.close();
-
-            // Check header integrity
-
-            // Check data size field (bytes 4-7)
-            quint32 riffSize = *reinterpret_cast<const quint32*>(wholeFile.mid(4,4).constData());
-
-        }
-
-
-        statusBar()->showMessage("Loading stego audio file...");
-        QApplication::processEvents();
-
-        QByteArray audioData;
-        auto info = ffmpeg->getAudioInfo(fileName);
-        if (fileName.endsWith(".wav", Qt::CaseInsensitive)) {
-            // WAV files: read directly, NO CONVERSION!
-            QFile file(fileName);
-            if (!file.open(QIODevice::ReadOnly)) {
-                QMessageBox::warning(this, "Error", "Could not read WAV file");
-                return;
-            }
-            audioData = file.readAll();
-            file.close();
-        } else {
-            // Non-WAV files: convert to WAV first
-            if (!ffmpeg->convertToWav(fileName, audioData)) {
-                QMessageBox::warning(this, "Error", "Could not process audio file");
-                return;
-            }
-            info = ffmpeg->getAudioInfoFromData(audioData);
-        }
-
-        if (!info.isValid) {
-            QMessageBox::warning(this, "Error", "Could not read audio file information");
-            return;
-        }
-
-        // Store data
-        m_stegoAudioPath = fileName;
-        m_stegoAudioData = audioData;
-        m_currentSampleRate = info.sampleRate;
-        m_currentChannels = info.channels;
-        m_currentBitsPerSample = info.bitsPerSample;
-
-        // Update UI
-        /*
-        stegoImageLabel->setText(QString("Stego Audio: %1\n%2 Hz, %3 ch, %4 bit")
-                                  .arg(QFileInfo(fileName).fileName())
-                                  .arg(info.sampleRate)
-                                  .arg(info.channels)
-                                  .arg(info.bitsPerSample));
-                                  */
-        QIcon placeholderIcon(":/resources/icons/music.svg");
-        stegoImageLabel->setPixmap(placeholderIcon.pixmap(originalImageLabel->size()));
-
-        currentToExtractPath = fileName;
-        //stegoImageLabel->setPixmap(QPixmap());
-        saveExtractedFileButton->setEnabled(true);
-        //extractedTextOutput->clear();
-
-
-
-
-        statusBar()->showMessage("Loaded stego audio: " + QFileInfo(fileName).fileName());
+    if (label == stegoImageLabel && !originalStegoImage.isNull()) {
+        sourceImage = &originalStegoImage;
+        zoomLevel = &stegoZoom;
+    }
+    else if (label == originalImageLabel && !originalCarrierImage.isNull()) {
+        sourceImage = &originalCarrierImage;
+        zoomLevel = &carrierZoom;
+    }
+    else if (label == modifiedImageLabel && !modifiedImage.isNull()) {
+        sourceImage = &modifiedImage;
+        zoomLevel = &modifiedZoom;
     }
 
+    if (!sourceImage || !zoomLevel) return;
 
-    //=============================================================================
-    // SAVE MODIFIED AUDIO (like saveModifiedImage)
-    //=============================================================================
+    // Calculate zoomed size
+    QSize zoomedSize = sourceImage->size() * (*zoomLevel);
 
-    void MainWindow::saveModifiedAudio()
-    {
-        if (m_modifiedAudioData.isEmpty()) {
-            QMessageBox::warning(this, "Error", "No modified audio to save");
-            return;
+    // Create pixmap of label size
+    QPixmap displayPixmap(label->size());
+    displayPixmap.fill(Qt::black); // or transparent
+
+    QPainter painter(&displayPixmap);
+
+    // Draw zoomed image with pan offset
+    QPixmap zoomedPixmap = QPixmap::fromImage(*sourceImage)
+            .scaled(zoomedSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+    painter.drawPixmap(pan.currentOffset, zoomedPixmap);
+    painter.end();
+
+    label->setPixmap(displayPixmap);
+}
+
+
+QWidget* MainWindow::createAudioPlayerBar()
+{
+    // Create toolbar widget
+    m_audioToolbar = new QWidget();
+    m_audioToolbar->setObjectName("audioToolbar");
+    m_audioToolbar->setFixedHeight(35);
+    m_audioToolbar->setVisible(false);  // Hidden by default
+
+    // Create toolbar layout
+    QHBoxLayout *toolbarLayout = new QHBoxLayout(m_audioToolbar);
+    toolbarLayout->setContentsMargins(10, 5, 10, 5);
+    toolbarLayout->setSpacing(10);
+
+
+    m_openMusicButton = new QPushButton(m_audioToolbar);
+    m_openMusicButton->setObjectName("openMusicButton");
+    m_openMusicButton->setIcon(QIcon(":/resources/icons/music.svg"));
+    m_openMusicButton->setFixedSize(44, 24);
+    m_openMusicButton->setToolTip("Load audio files");
+
+    // === PLAY/PAUSE/STOP BUTTONS ===
+    m_audioPlayButton = new QPushButton(m_audioToolbar);
+    m_audioPlayButton->setObjectName("audioPlayButton");
+    m_audioPlayButton->setIcon(QIcon(":/resources/icons/play.svg"));
+    m_audioPlayButton->setFixedSize(32, 24);
+    m_audioPlayButton->setToolTip("Play");
+
+    m_audioPauseButton = new QPushButton(m_audioToolbar);
+    m_audioPauseButton->setObjectName("audioPauseButton");
+    m_audioPauseButton->setIcon(QIcon(":resources/icons/pause.svg"));
+    m_audioPauseButton->setFixedSize(24, 24);
+    m_audioPauseButton->setToolTip("Pause");
+
+    m_audioStopButton = new QPushButton(m_audioToolbar);
+    m_audioStopButton->setObjectName("audioStopButton");
+    m_audioStopButton->setIcon(QIcon(":/resources/icons/square.svg"));
+    m_audioStopButton->setFixedSize(24, 24);
+    m_audioStopButton->setToolTip("Stop");
+
+    // === VOLUME SLIDER ===
+    QLabel *volLabel = new QLabel("Vol:", m_audioToolbar);
+    //volLabel->setStyleSheet("color: white;");
+
+    m_audioVolumeSlider = new QSlider(Qt::Horizontal, m_audioToolbar);
+    m_audioVolumeSlider->setObjectName("audioVolumeSlider");
+    m_audioVolumeSlider->setMinimumWidth(100);
+    m_audioVolumeSlider->setMaximumWidth(150);
+    m_audioVolumeSlider->setRange(0, 100);
+    m_audioVolumeSlider->setValue(70);
+
+    m_audioVolumeLabel = new QLabel("70%", m_audioToolbar);
+    //m_audioVolumeLabel->setStyleSheet("color: white; min-width: 35px;");
+
+    // === DURATION SLIDER ===
+    m_audioProgressSlider = new QSlider(Qt::Horizontal, m_audioToolbar);
+    m_audioProgressSlider->setObjectName("audioProgressSlider");
+    m_audioProgressSlider->setRange(0, 100);
+    m_audioProgressSlider->setValue(0);
+
+    // === TIME LABEL ===
+    m_audioTimeLabel = new QLabel("00:00 / 00:00", m_audioToolbar);
+    m_audioTimeLabel->setObjectName("audioTimeLabel");
+    //m_audioTimeLabel->setStyleSheet("color: white; font-size: 12px; min-width: 100px;");
+
+    // === ADD ALL TO LAYOUT ===
+    toolbarLayout->addWidget(m_openMusicButton);
+
+    toolbarLayout->addWidget(m_audioPlayButton);
+    toolbarLayout->addWidget(m_audioPauseButton);
+    toolbarLayout->addWidget(m_audioStopButton);
+
+    toolbarLayout->addSpacing(20);  // Some breathing room
+
+    toolbarLayout->addWidget(volLabel);
+    toolbarLayout->addWidget(m_audioVolumeSlider);
+    toolbarLayout->addWidget(m_audioVolumeLabel);
+
+    toolbarLayout->addSpacing(10);
+
+    toolbarLayout->addWidget(m_audioProgressSlider, 1);  // Stretches
+    toolbarLayout->addWidget(m_audioTimeLabel);
+
+    // === STYLESHEET (simplified) ===
+    QString toolbarStyle =
+            "#audioToolbar {"
+            "    background-color: rgba(0, 0, 0, 220);"
+            "    border-top: 1px solid rgba(255, 255, 255, 50);"
+            "    padding: 2px 8px;"
+            "    spacing: 4px;"
+            "}"
+            "#audioToolbar QLabel {"
+            "    color: white;"
+            "    font-size: 12px;"
+            "}"
+            "#audioToolbar QPushButton {"
+            "    color: white;"
+            "    background-color: rgba(255, 255, 255, 30);"
+            "    border: none;"
+            "    border-radius: 3px;"
+            "    padding: 4px;"
+            "}"
+            "#audioToolbar QPushButton:hover {"
+            "    background-color: rgba(255, 255, 255, 50);"
+            "}"
+            "#audioToolbar QPushButton:pressed {"
+            "    background-color: rgba(255, 255, 255, 70);"
+            "}"
+            "#audioToolbar QSlider::groove:horizontal {"
+            "    height: 3px;"
+            "    background: rgba(255, 255, 255, 50);"
+            "    border-radius: 1.5px;"
+            "}"
+            "#audioToolbar QSlider::handle:horizontal {"
+            "    background: white;"
+            "    width: 10px;"
+            "    height: 10px;"
+            "    margin: -3.5px 0;"
+            "    border-radius: 5px;"
+            "}";
+
+    //m_audioToolbar->setStyleSheet(toolbarStyle);
+
+    // === CONNECTIONS (to AudioPlayer) ===
+
+    connect(m_openMusicButton, &QPushButton::clicked, this, [this](){
+        QString fileName = QFileDialog::getOpenFileName(
+                    this,
+                    "Select Music File",
+                    Constants::appDirPath,
+                    "Audio Files (*.mp3 *.wav *.ogg *.flac *.aac *.m4a *.wma);;All Files (*.*)"
+                    );
+
+        if (!fileName.isEmpty()) {
+            audioPlayer->playFile(fileName);
         }
+    });
 
-        QString baseName = QFileInfo(m_currentAudioPath).completeBaseName();
-        QString defaultFilename = QDir(Constants::fusedImagesPath)
-        .filePath(QString("%1_stego.wav").arg(baseName));
+    // Play/Pause/Stop buttons
+    connect(m_audioPlayButton, &QPushButton::clicked,
+            audioPlayer, &AudioPlayer::play);
+    connect(m_audioPauseButton, &QPushButton::clicked,
+            audioPlayer, &AudioPlayer::pause);
+    connect(m_audioStopButton, &QPushButton::clicked,
+            audioPlayer, &AudioPlayer::stop);
 
-        QString fileName = QFileDialog::getSaveFileName(this, "Save Modified Audio",
-        defaultFilename,
-        "WAV Files (*.wav)");
-        if (fileName.isEmpty()) return;
+    // Volume control
+    connect(m_audioVolumeSlider, &QSlider::valueChanged,
+            audioPlayer, &AudioPlayer::setVolume);
+    connect(audioPlayer, &AudioPlayer::volumeChanged,
+            this, &MainWindow::onAudioVolumeChanged);
 
-        // Ensure .wav extension
-        if (!fileName.endsWith(".wav", Qt::CaseInsensitive)) {
-            fileName += ".wav";
-        }
+    // Progress slider (use sliderReleased for seeking)
+    connect(m_audioProgressSlider, &QSlider::sliderReleased, this, [this](){
+        int percent = m_audioProgressSlider->value();
+        qint64 duration = audioPlayer->duration();
+        qint64 newPosition = (duration * percent) / 100;
+        audioPlayer->setPosition(newPosition);
+    });
 
-        statusBar()->showMessage("Saving audio file...");
-        //QProgressDialog progress("Saving audio...", QString(), 0, 0, this);
-        //progress.setWindowModality(Qt::ApplicationModal);
-        //progress.show();
-        QApplication::processEvents();
+    // Player signals to UI
+    connect(audioPlayer, &AudioPlayer::positionChanged,
+            this, &MainWindow::onAudioPositionChanged);
+    connect(audioPlayer, &AudioPlayer::durationChanged,
+            this, &MainWindow::onAudioDurationChanged);
+    connect(audioPlayer, &AudioPlayer::mediaLoaded,
+            this, &MainWindow::onMediaLoaded);
+    connect(audioPlayer, &AudioPlayer::playbackStarted,
+            this, &MainWindow::onPlaybackStarted);
+    connect(audioPlayer, &AudioPlayer::playbackPaused,
+            this, &MainWindow::onPlaybackPaused);
+    connect(audioPlayer, &AudioPlayer::playbackStopped,
+            this, &MainWindow::onPlaybackStopped);
 
+    return m_audioToolbar;
+
+}
+
+
+void MainWindow::openAudioCarrier()
+{
+    QString initialAudioPath = Constants::imagesPath;
+
+    if (!QDir(initialAudioPath).exists()) {
+        initialAudioPath = Constants::appDirPath;
+    }
+
+    QString fileName = QFileDialog::getOpenFileName(this, "Select Audio Carrier",
+                                                    initialAudioPath,
+                                                    "Audio Files (*.mp3 *.wav *.flac *.ogg)");
+    if (fileName.isEmpty()) return;
+
+    statusBar()->showMessage("Loading audio file...");
+    QApplication::processEvents();
+
+    // Convert to WAV using FFmpeg
+    QByteArray wavData;
+    if (!ffmpeg->convertToWav(fileName, wavData)) {
+        QMessageBox::warning(this, "Error", "Could not convert audio file to WAV format");
+        return;
+    }
+
+    // Get metadata
+    auto info = ffmpeg->getAudioInfoFromData(wavData);
+    if (!info.isValid) {
+        QMessageBox::warning(this, "Error", "Could not read audio file information");
+        return;
+    }
+
+    // Store data
+    m_currentAudioPath = fileName;
+    m_currentAudioData = wavData;
+    m_currentSampleRate = info.sampleRate;
+    m_currentChannels = info.channels;
+    m_currentBitsPerSample = info.bitsPerSample;
+    m_currentDuration = info.durationSeconds;
+    m_modifiedAudioData.clear();
+
+    // Update UI (reuse existing labels but change text)
+    originalImageLabel->setText(QString("Audio: %1\n%2 Hz, %3 ch, %4 bit, %5 s")
+                                .arg(QFileInfo(fileName).fileName())
+                                .arg(info.sampleRate)
+                                .arg(info.channels)
+                                .arg(info.bitsPerSample)
+                                .arg(info.durationSeconds));
+    modifiedImageLabel->setText("Modified Audio (not yet created)");
+
+    // Clear any pixmaps
+    originalImageLabel->setPixmap(QPixmap());
+    modifiedImageLabel->setPixmap(QPixmap());
+    QIcon placeholderIcon(":/resources/icons/music.svg");
+    originalImageLabel->setPixmap(placeholderIcon.pixmap(originalImageLabel->size()));
+    //originalImageLabel->setText(fileName);
+    currentCarrierPath = fileName;
+    updateAudioCapacity();
+    hideButton->setEnabled(true);
+    saveImageButton->setEnabled(false);
+
+    statusBar()->showMessage("Loaded: " + QFileInfo(fileName).fileName());
+}
+
+//=============================================================================
+// AUDIO STEGO FILE OPENING (like openStegoImageButton lambda)
+//=============================================================================
+
+
+
+void MainWindow::openAudioStegoFile()
+{
+    QString filter = "Audio Files (*.mp3 *.wav *.flac *.ogg);;All Files (*)";
+    QString fileName = QFileDialog::getOpenFileName(this, "Open Audio with Hidden Data",
+                                                    Constants::fusedImagesPath, filter);
+    if (fileName.isEmpty()) return;
+
+    if (fileName.endsWith(".wav", Qt::CaseInsensitive)) {
         QFile file(fileName);
-        if (file.open(QIODevice::WriteOnly)) {
-            qint64 written = file.write(m_modifiedAudioData);
-            file.close();
+        if(!file.open(QIODevice::ReadOnly)) {
+            QMessageBox::warning(this, "Error", "Could not read file: " + file.errorString());
+            return;
+        }
+        QByteArray wholeFile = file.readAll();
+        file.close();
 
-            if (written == m_modifiedAudioData.size()) {
-                statusBar()->showMessage("Saved: " + QFileInfo(fileName).fileName());
-                currentModifiedPath = fileName;
-                QIcon placeholderIcon(":/resources/icons/music.svg");
-                modifiedImageLabel->setPixmap(placeholderIcon.pixmap(originalImageLabel->size()));
-            } else {
-                QMessageBox::warning(this, "Error", "Failed to save all audio data");
+        // Check header integrity
+
+        // Check data size field (bytes 4-7)
+        quint32 riffSize = *reinterpret_cast<const quint32*>(wholeFile.mid(4,4).constData());
+
+    }
+
+
+    statusBar()->showMessage("Loading stego audio file...");
+    QApplication::processEvents();
+
+    QByteArray audioData;
+    auto info = ffmpeg->getAudioInfo(fileName);
+    if (fileName.endsWith(".wav", Qt::CaseInsensitive)) {
+        // WAV files: read directly, NO CONVERSION!
+        QFile file(fileName);
+        if (!file.open(QIODevice::ReadOnly)) {
+            QMessageBox::warning(this, "Error", "Could not read WAV file");
+            return;
+        }
+        audioData = file.readAll();
+        file.close();
+    } else {
+        // Non-WAV files: convert to WAV first
+        if (!ffmpeg->convertToWav(fileName, audioData)) {
+            QMessageBox::warning(this, "Error", "Could not process audio file");
+            return;
+        }
+        info = ffmpeg->getAudioInfoFromData(audioData);
+    }
+
+    if (!info.isValid) {
+        QMessageBox::warning(this, "Error", "Could not read audio file information");
+        return;
+    }
+
+    // Store data
+    m_stegoAudioPath = fileName;
+    m_stegoAudioData = audioData;
+    m_currentSampleRate = info.sampleRate;
+    m_currentChannels = info.channels;
+    m_currentBitsPerSample = info.bitsPerSample;
+
+    // Update UI
+    /*
+stegoImageLabel->setText(QString("Stego Audio: %1\n%2 Hz, %3 ch, %4 bit")
+                          .arg(QFileInfo(fileName).fileName())
+                          .arg(info.sampleRate)
+                          .arg(info.channels)
+                          .arg(info.bitsPerSample));
+                          */
+    QIcon placeholderIcon(":/resources/icons/music.svg");
+    stegoImageLabel->setPixmap(placeholderIcon.pixmap(originalImageLabel->size()));
+
+    currentToExtractPath = fileName;
+    //stegoImageLabel->setPixmap(QPixmap());
+    saveExtractedFileButton->setEnabled(true);
+    //extractedTextOutput->clear();
+
+
+
+
+    statusBar()->showMessage("Loaded stego audio: " + QFileInfo(fileName).fileName());
+}
+
+
+//=============================================================================
+// SAVE MODIFIED AUDIO (like saveModifiedImage)
+//=============================================================================
+
+void MainWindow::saveModifiedAudio()
+{
+    if (m_modifiedAudioData.isEmpty()) {
+        QMessageBox::warning(this, "Error", "No modified audio to save");
+        return;
+    }
+
+    QString baseName = QFileInfo(m_currentAudioPath).completeBaseName();
+    QString defaultFilename = QDir(Constants::fusedImagesPath)
+            .filePath(QString("%1_stego.wav").arg(baseName));
+
+    QString fileName = QFileDialog::getSaveFileName(this, "Save Modified Audio",
+                                                    defaultFilename,
+                                                    "WAV Files (*.wav)");
+    if (fileName.isEmpty()) return;
+
+    // Ensure .wav extension
+    if (!fileName.endsWith(".wav", Qt::CaseInsensitive)) {
+        fileName += ".wav";
+    }
+
+    statusBar()->showMessage("Saving audio file...");
+    //QProgressDialog progress("Saving audio...", QString(), 0, 0, this);
+    //progress.setWindowModality(Qt::ApplicationModal);
+    //progress.show();
+    QApplication::processEvents();
+
+    QFile file(fileName);
+    if (file.open(QIODevice::WriteOnly)) {
+        qint64 written = file.write(m_modifiedAudioData);
+        file.close();
+
+        if (written == m_modifiedAudioData.size()) {
+            statusBar()->showMessage("Saved: " + QFileInfo(fileName).fileName());
+            currentModifiedPath = fileName;
+            QIcon placeholderIcon(":/resources/icons/music.svg");
+            modifiedImageLabel->setPixmap(placeholderIcon.pixmap(originalImageLabel->size()));
+        } else {
+            QMessageBox::warning(this, "Error", "Failed to save all audio data");
+        }
+    } else {
+        QMessageBox::warning(this, "Error", "Could not open file for writing");
+    }
+}
+
+//=============================================================================
+// HIDE DATA IN AUDIO (like hideData lambda but for audio)
+//=============================================================================
+
+void MainWindow::hideDataInAudio()
+{
+    if (m_currentAudioData.isEmpty()) {
+        QMessageBox::warning(this, "Error", "Please load an audio file first");
+        return;
+    }
+
+    QByteArray data;
+    if (isTextInput) {
+        QString text = textInput->toPlainText();
+        if (text.isEmpty()) {
+            QMessageBox::warning(this, "Error", "Please enter text to hide");
+            return;
+        }
+        data = text.toUtf8();
+    } else {
+        QString filePath = filePathInput->text();
+        QFile file(filePath);
+        if (!file.exists() || !file.open(QIODevice::ReadOnly)) {
+            QMessageBox::warning(this, "Error", "Could not open the selected file");
+            return;
+        }
+        //data = file.readAll();
+        //file.close();
+        QByteArray fileData = file.readAll();
+        file.close();
+        // --- SAME LOGIC AS IMAGE STEG ---
+        QString fileName = QFileInfo(filePath).fileName();   // original filename
+        QByteArray fileNameBytes = fileName.toUtf8();
+
+        QByteArray combined;
+        combined.append(static_cast<char>(fileNameBytes.size())); // filename length
+        combined.append(fileNameBytes);                           // filename
+        combined.append(fileData);                                // file data
+
+        data = combined;
+    }
+
+    // Check if encryption is enabled
+    if (encryptionCheckBox->isChecked()) {
+        PassphraseDialog dialog(true, this);
+        if (dialog.exec() == QDialog::Accepted) {
+            QString passphrase = dialog.getPassphrase();
+            QByteArray encryptedData = engine->encryptData(data, passphrase);
+            if (encryptedData.isEmpty()) {
+                QMessageBox::warning(this, "Error", "Encryption failed");
+                return;
+            }
+            encryptedData.prepend("ENCR");
+            data = encryptedData;
+
+            if (dialog.rememberPassphrase()) {
+                rememberedPassphrase = passphrase;
+                hasRememberedPassphrase = true;
             }
         } else {
-            QMessageBox::warning(this, "Error", "Could not open file for writing");
+            return;
         }
     }
 
-    //=============================================================================
-    // HIDE DATA IN AUDIO (like hideData lambda but for audio)
-    //=============================================================================
+    // Check capacity
+    int totalSamples = m_currentAudioData.size() / (m_currentBitsPerSample / 8);
+    int capacity = audioEngine->calculateAudioCapacity(totalSamples, m_currentChannels,
+                                                       m_currentBitsPerSample, 2);
 
-    void MainWindow::hideDataInAudio()
-    {
-        if (m_currentAudioData.isEmpty()) {
-            QMessageBox::warning(this, "Error", "Please load an audio file first");
-            return;
+    if (data.size() > capacity) {
+        QMessageBox::warning(this, "Error",
+                             QString("Data size (%1 bytes) exceeds audio capacity (%2 bytes)")
+                             .arg(data.size()).arg(capacity));
+        return;
+    }
+
+    statusBar()->showMessage("Hiding data in audio...");
+    QApplication::processEvents();
+
+    QByteArray stegoAudio;
+    if (audioEngine->embedDataInAudio(m_currentAudioData, stegoAudio, data,
+                                      m_currentSampleRate, m_currentChannels,
+                                      m_currentBitsPerSample, 2)) {
+        m_modifiedAudioData = stegoAudio;
+        modifiedImageLabel->setText(QString("Modified Audio (%1 KB)")
+                                    .arg(stegoAudio.size() / 1024));
+        modifiedImageLabel->setPixmap(QPixmap());
+        saveImageButton->setEnabled(true);
+        statusBar()->showMessage("Data hidden successfully");
+    } else {
+        QMessageBox::warning(this, "Error", "Failed to hide data in audio");
+    }
+}
+
+//=============================================================================
+// EXTRACT DATA FROM AUDIO (like saveExtractedFileButton lambda but for audio)
+//=============================================================================
+
+
+
+void MainWindow::extractDataFromAudio()
+{
+    if (m_stegoAudioData.isEmpty()) {
+        QMessageBox::warning(this, "Error", "Please load a stego audio file first");
+        return;
+    }
+
+    statusBar()->showMessage("Extracting data from audio...");
+    QApplication::processEvents();
+
+    QByteArray extractedData = audioEngine->extractDataFromAudio(
+                m_stegoAudioData,
+                m_currentSampleRate,
+                m_currentChannels,
+                m_currentBitsPerSample,
+                2);
+
+    if (extractedData.isEmpty()) {
+        QMessageBox::warning(this, "Error", "No hidden data found");
+        return;
+    }
+
+    // Handle encryption
+    if (extractedData.startsWith("ENCR")) {
+
+        if (hasRememberedPassphrase) {
+            QByteArray decryptedData =
+                    engine->decryptData(extractedData.mid(4), rememberedPassphrase);
+
+            if (!decryptedData.isEmpty()) {
+                extractedData = decryptedData;
+            } else {
+                hasRememberedPassphrase = false;
+                rememberedPassphrase.clear();
+            }
         }
 
-        QByteArray data;
-        if (isTextInput) {
-            QString text = textInput->toPlainText();
-            if (text.isEmpty()) {
-                QMessageBox::warning(this, "Error", "Please enter text to hide");
-                return;
-            }
-            data = text.toUtf8();
-        } else {
-            QString filePath = filePathInput->text();
-            QFile file(filePath);
-            if (!file.exists() || !file.open(QIODevice::ReadOnly)) {
-                QMessageBox::warning(this, "Error", "Could not open the selected file");
-                return;
-            }
-            //data = file.readAll();
-            //file.close();
-            QByteArray fileData = file.readAll();
-            file.close();
-            // --- SAME LOGIC AS IMAGE STEG ---
-            QString fileName = QFileInfo(filePath).fileName();   // original filename
-            QByteArray fileNameBytes = fileName.toUtf8();
+        if (!hasRememberedPassphrase) {
 
-            QByteArray combined;
-            combined.append(static_cast<char>(fileNameBytes.size())); // filename length
-            combined.append(fileNameBytes);                           // filename
-            combined.append(fileData);                                // file data
+            PassphraseDialog dialog(false, this);
 
-            data = combined;
-        }
-
-        // Check if encryption is enabled
-        if (encryptionCheckBox->isChecked()) {
-            PassphraseDialog dialog(true, this);
             if (dialog.exec() == QDialog::Accepted) {
+
                 QString passphrase = dialog.getPassphrase();
-                QByteArray encryptedData = engine->encryptData(data, passphrase);
-                if (encryptedData.isEmpty()) {
-                    QMessageBox::warning(this, "Error", "Encryption failed");
-                    return;
-                }
-                encryptedData.prepend("ENCR");
-                data = encryptedData;
 
-                if (dialog.rememberPassphrase()) {
-                    rememberedPassphrase = passphrase;
-                    hasRememberedPassphrase = true;
-                }
-            } else {
-                return;
-            }
-        }
-
-        // Check capacity
-        int totalSamples = m_currentAudioData.size() / (m_currentBitsPerSample / 8);
-        int capacity = audioEngine->calculateAudioCapacity(totalSamples, m_currentChannels,
-        m_currentBitsPerSample, 2);
-
-        if (data.size() > capacity) {
-            QMessageBox::warning(this, "Error",
-            QString("Data size (%1 bytes) exceeds audio capacity (%2 bytes)")
-            .arg(data.size()).arg(capacity));
-            return;
-        }
-
-        statusBar()->showMessage("Hiding data in audio...");
-        QApplication::processEvents();
-
-        QByteArray stegoAudio;
-        if (audioEngine->embedDataInAudio(m_currentAudioData, stegoAudio, data,
-        m_currentSampleRate, m_currentChannels,
-        m_currentBitsPerSample, 2)) {
-            m_modifiedAudioData = stegoAudio;
-            modifiedImageLabel->setText(QString("Modified Audio (%1 KB)")
-            .arg(stegoAudio.size() / 1024));
-            modifiedImageLabel->setPixmap(QPixmap());
-            saveImageButton->setEnabled(true);
-            statusBar()->showMessage("Data hidden successfully");
-        } else {
-            QMessageBox::warning(this, "Error", "Failed to hide data in audio");
-        }
-    }
-
-    //=============================================================================
-    // EXTRACT DATA FROM AUDIO (like saveExtractedFileButton lambda but for audio)
-    //=============================================================================
-
-
-
-    void MainWindow::extractDataFromAudio()
-    {
-        if (m_stegoAudioData.isEmpty()) {
-            QMessageBox::warning(this, "Error", "Please load a stego audio file first");
-            return;
-        }
-
-        statusBar()->showMessage("Extracting data from audio...");
-        QApplication::processEvents();
-
-        QByteArray extractedData = audioEngine->extractDataFromAudio(
-        m_stegoAudioData,
-        m_currentSampleRate,
-        m_currentChannels,
-        m_currentBitsPerSample,
-        2);
-
-        if (extractedData.isEmpty()) {
-            QMessageBox::warning(this, "Error", "No hidden data found");
-            return;
-        }
-
-        // Handle encryption
-        if (extractedData.startsWith("ENCR")) {
-
-            if (hasRememberedPassphrase) {
                 QByteArray decryptedData =
-                engine->decryptData(extractedData.mid(4), rememberedPassphrase);
+                        engine->decryptData(extractedData.mid(4), passphrase);
 
                 if (!decryptedData.isEmpty()) {
+
                     extractedData = decryptedData;
-                } else {
-                    hasRememberedPassphrase = false;
-                    rememberedPassphrase.clear();
-                }
-            }
 
-            if (!hasRememberedPassphrase) {
-
-                PassphraseDialog dialog(false, this);
-
-                if (dialog.exec() == QDialog::Accepted) {
-
-                    QString passphrase = dialog.getPassphrase();
-
-                    QByteArray decryptedData =
-                    engine->decryptData(extractedData.mid(4), passphrase);
-
-                    if (!decryptedData.isEmpty()) {
-
-                        extractedData = decryptedData;
-
-                        if (dialog.rememberPassphrase()) {
-                            rememberedPassphrase = passphrase;
-                            hasRememberedPassphrase = true;
-                        }
-
-                    } else {
-                        QMessageBox::warning(this, "Error", "Decryption failed");
-                        return;
+                    if (dialog.rememberPassphrase()) {
+                        rememberedPassphrase = passphrase;
+                        hasRememberedPassphrase = true;
                     }
 
                 } else {
+                    QMessageBox::warning(this, "Error", "Decryption failed");
                     return;
                 }
+
+            } else {
+                return;
             }
         }
+    }
 
-        // ===== PARSE FILENAME (same logic as image steg) =====
+    // ===== PARSE FILENAME (same logic as image steg) =====
 
-        QString extractedFileName;
-        QByteArray fileContent;
+    QString extractedFileName;
+    QByteArray fileContent;
 
-        int fileNameLen = static_cast<unsigned char>(extractedData[0]);
+    int fileNameLen = static_cast<unsigned char>(extractedData[0]);
 
-        if (fileNameLen > 0 &&
-        fileNameLen < 200 &&
-        extractedData.size() > (1 + fileNameLen))
-        {
+    if (fileNameLen > 0 &&
+            fileNameLen < 200 &&
+            extractedData.size() > (1 + fileNameLen))
+    {
+        extractedFileName =
+                QString::fromUtf8(extractedData.mid(1, fileNameLen));
+
+        fileContent =
+                extractedData.mid(1 + fileNameLen);
+
+        // Detect bogus filenames produced by plain text
+        //if (extractedFileName.contains(QRegExp(R"([:,'"])"))) {
+        if (extractedFileName.contains(QRegularExpression(R"([:,'"])"))) {
             extractedFileName =
-            QString::fromUtf8(extractedData.mid(1, fileNameLen));
-
-            fileContent =
-            extractedData.mid(1 + fileNameLen);
-
-            // Detect bogus filenames produced by plain text
-            //if (extractedFileName.contains(QRegExp(R"([:,'"])"))) {
-            if (extractedFileName.contains(QRegularExpression(R"([:,'"])"))) {
-                extractedFileName =
-                QString("extracted_audio_data_%1.txt")
-                .arg(QDateTime::currentDateTime()
-                .toString("yyyyMMdd_hhmmss"));
-
-                fileContent = extractedData;
-            }
-
-        } else {
-
-            extractedFileName =
-            QString("extracted_audio_data_%1.txt")
-            .arg(QDateTime::currentDateTime()
-            .toString("yyyyMMdd_hhmmss"));
+                    QString("extracted_audio_data_%1.txt")
+                    .arg(QDateTime::currentDateTime()
+                         .toString("yyyyMMdd_hhmmss"));
 
             fileContent = extractedData;
         }
 
-        // Build default save path
-        QString defaultFilename =
-        QDir(Constants::extractedImagesPath)
-        .filePath(extractedFileName);
+    } else {
 
-        QString fileName =
-        QFileDialog::getSaveFileName(
-        this,
-        "Save Extracted Data",
-        defaultFilename,
-        "All Files (*)");
+        extractedFileName =
+                QString("extracted_audio_data_%1.txt")
+                .arg(QDateTime::currentDateTime()
+                     .toString("yyyyMMdd_hhmmss"));
 
-        if (fileName.isEmpty()) {
+        fileContent = extractedData;
+    }
+
+    // Build default save path
+    QString defaultFilename =
+            QDir(Constants::extractedImagesPath)
+            .filePath(extractedFileName);
+
+    QString fileName =
+            QFileDialog::getSaveFileName(
+                this,
+                "Save Extracted Data",
+                defaultFilename,
+                "All Files (*)");
+
+    if (fileName.isEmpty()) {
+
+        QString text = QString::fromUtf8(fileContent);
+
+        bool isTextFile = true;
+
+        for (const QChar &c : text) {
+            if (!c.isPrint() && !c.isSpace()) {
+                isTextFile = false;
+                break;
+            }
+        }
+
+        if (isTextFile) {
+            extractedTextOutput->setPlainText(text);
+        } else {
+            extractedTextOutput->setPlainText(
+                        QString("Binary data: %1 bytes")
+                        .arg(fileContent.size()));
+        }
+
+        statusBar()->showMessage("Data extracted but not saved");
+        return;
+    }
+
+    QFile file(fileName);
+
+    if (file.open(QIODevice::WriteOnly)) {
+
+        qint64 bytesWritten = file.write(fileContent);
+        file.close();
+
+        if (bytesWritten == fileContent.size()) {
+
+            statusBar()->showMessage(
+                        "Extracted data saved successfully to: " + fileName);
 
             QString text = QString::fromUtf8(fileContent);
 
@@ -2080,759 +2175,724 @@ void MainWindow::onCameraButtonClicked()
             }
 
             if (isTextFile) {
+
                 extractedTextOutput->setPlainText(text);
+
+                QMessageBox::information(
+                            this,
+                            "Text File Detected",
+                            "The extracted data appears to be text and has been saved to: "
+                            + fileName);
+
             } else {
+
                 extractedTextOutput->setPlainText(
-                QString("Binary data: %1 bytes")
-                .arg(fileContent.size()));
-            }
+                            QString("Binary data: %1 bytes")
+                            .arg(fileContent.size()));
 
-            statusBar()->showMessage("Data extracted but not saved");
-            return;
-        }
-
-        QFile file(fileName);
-
-        if (file.open(QIODevice::WriteOnly)) {
-
-            qint64 bytesWritten = file.write(fileContent);
-            file.close();
-
-            if (bytesWritten == fileContent.size()) {
-
-                statusBar()->showMessage(
-                "Extracted data saved successfully to: " + fileName);
-
-                QString text = QString::fromUtf8(fileContent);
-
-                bool isTextFile = true;
-
-                for (const QChar &c : text) {
-                    if (!c.isPrint() && !c.isSpace()) {
-                        isTextFile = false;
-                        break;
-                    }
-                }
-
-                if (isTextFile) {
-
-                    extractedTextOutput->setPlainText(text);
-
-                    QMessageBox::information(
-                    this,
-                    "Text File Detected",
-                    "The extracted data appears to be text and has been saved to: "
-                    + fileName);
-
-                } else {
-
-                    extractedTextOutput->setPlainText(
-                    QString("Binary data: %1 bytes")
-                    .arg(fileContent.size()));
-
-                    QMessageBox::information(
-                    this,
-                    "Binary File Saved",
-                    "The extracted binary data has been saved to: "
-                    + fileName);
-                }
-
-            } else {
-                QMessageBox::warning(this,
-                "Error",
-                "Could not save all the extracted data");
+                QMessageBox::information(
+                            this,
+                            "Binary File Saved",
+                            "The extracted binary data has been saved to: "
+                            + fileName);
             }
 
         } else {
-
             QMessageBox::warning(this,
-            "Error",
-            "Could not save the extracted data");
+                                 "Error",
+                                 "Could not save all the extracted data");
         }
 
-        m_extractedData = fileContent;
+    } else {
+
+        QMessageBox::warning(this,
+                             "Error",
+                             "Could not save the extracted data");
     }
 
+    m_extractedData = fileContent;
+}
 
-    //=============================================================================
-    // UPDATE AUDIO CAPACITY (like updateCapacityStatus)
-    //=============================================================================
 
-    void MainWindow::updateAudioCapacity()
-    {
-        if (!capacityLabel) return;
+//=============================================================================
+// UPDATE AUDIO CAPACITY (like updateCapacityStatus)
+//=============================================================================
 
-        if (m_currentAudioData.isEmpty()) {
-            capacityLabel->setText("Capacity: 0/0 bytes (0%)");
-            return;
-        }
+void MainWindow::updateAudioCapacity()
+{
+    if (!capacityLabel) return;
 
-        int totalSamples = m_currentAudioData.size() / (m_currentBitsPerSample / 8);
-        int capacity = audioEngine->calculateAudioCapacity(totalSamples, m_currentChannels,
-        m_currentBitsPerSample, 2);
-
-        int dataSize = 0;
-        if (isTextInput) {
-            dataSize = textInput->toPlainText().toUtf8().size();
-        } else {
-            QFile file(filePathInput->text());
-            if (file.exists() && file.open(QIODevice::ReadOnly)) {
-                dataSize = file.size();
-                file.close();
-            }
-        }
-
-        if (encryptionCheckBox->isChecked() && dataSize > 0) {
-            dataSize = dataSize + 32 + 4;
-            int remainder = dataSize % 16;
-            if (remainder > 0) dataSize += (16 - remainder);
-        }
-
-        double percentage = (capacity > 0) ? (dataSize * 100.0 / capacity) : 0;
-        capacityLabel->setText(QString("Capacity: %1/%2 bytes (%3%)")
-        .arg(dataSize).arg(capacity).arg(percentage, 0, 'f', 1));
-
-        //hideButton->setEnabled(capacity > 0 && dataSize > 0 && dataSize <= capacity);
+    if (m_currentAudioData.isEmpty()) {
+        capacityLabel->setText("Capacity: 0/0 bytes (0%)");
+        return;
     }
 
-    //=============================================================================
-    // TOGGLE AUDIO INPUT METHOD (like toggleInputMethod)
-    //=============================================================================
+    int totalSamples = m_currentAudioData.size() / (m_currentBitsPerSample / 8);
+    int capacity = audioEngine->calculateAudioCapacity(totalSamples, m_currentChannels,
+                                                       m_currentBitsPerSample, 2);
 
-    void MainWindow::toggleAudioInputMethod()
-    {
-        isTextInput = textInputRadio->isChecked();
-        textInput->setEnabled(isTextInput);
-        filePathInput->setEnabled(!isTextInput);
-        browseFileButton->setEnabled(!isTextInput);
+    int dataSize = 0;
+    if (isTextInput) {
+        dataSize = textInput->toPlainText().toUtf8().size();
+    } else {
+        QFile file(filePathInput->text());
+        if (file.exists() && file.open(QIODevice::ReadOnly)) {
+            dataSize = file.size();
+            file.close();
+        }
+    }
+
+    if (encryptionCheckBox->isChecked() && dataSize > 0) {
+        dataSize = dataSize + 32 + 4;
+        int remainder = dataSize % 16;
+        if (remainder > 0) dataSize += (16 - remainder);
+    }
+
+    double percentage = (capacity > 0) ? (dataSize * 100.0 / capacity) : 0;
+    capacityLabel->setText(QString("Capacity: %1/%2 bytes (%3%)")
+                           .arg(dataSize).arg(capacity).arg(percentage, 0, 'f', 1));
+
+    //hideButton->setEnabled(capacity > 0 && dataSize > 0 && dataSize <= capacity);
+}
+
+//=============================================================================
+// TOGGLE AUDIO INPUT METHOD (like toggleInputMethod)
+//=============================================================================
+
+void MainWindow::toggleAudioInputMethod()
+{
+    isTextInput = textInputRadio->isChecked();
+    textInput->setEnabled(isTextInput);
+    filePathInput->setEnabled(!isTextInput);
+    browseFileButton->setEnabled(!isTextInput);
+    updateAudioCapacity();
+}
+
+//=============================================================================
+// SELECT AUDIO DATA FILE (like selectDataFile)
+//=============================================================================
+
+void MainWindow::selectAudioDataFile()
+{
+    QString fileName = QFileDialog::getOpenFileName(this, "Select File to Hide", QDir::homePath());
+    if (!fileName.isEmpty()) {
+        filePathInput->setText(fileName);
         updateAudioCapacity();
     }
+}
 
-    //=============================================================================
-    // SELECT AUDIO DATA FILE (like selectDataFile)
-    //=============================================================================
+//=============================================================================
+// PROCESS DROPPED AUDIO (like processDroppedImage)
+//=============================================================================
 
-    void MainWindow::selectAudioDataFile()
-    {
-        QString fileName = QFileDialog::getOpenFileName(this, "Select File to Hide", QDir::homePath());
-        if (!fileName.isEmpty()) {
-            filePathInput->setText(fileName);
-            updateAudioCapacity();
+
+
+void MainWindow::processDroppedAudio(const QString &filePath)
+{
+    if (filePath.isEmpty()) return;
+
+    // Check supported audio formats
+    if (!filePath.endsWith(".mp3", Qt::CaseInsensitive) &&
+            !filePath.endsWith(".wav", Qt::CaseInsensitive) &&
+            !filePath.endsWith(".flac", Qt::CaseInsensitive) &&
+            !filePath.endsWith(".ogg", Qt::CaseInsensitive)) {
+        statusBar()->showMessage("Unsupported audio format");
+        return;
+    }
+
+    // Convert to WAV for processing
+    QByteArray wavData;
+    if (!ffmpeg->convertToWav(filePath, wavData)) {
+        statusBar()->showMessage("Could not process audio file");
+        return;
+    }
+
+    // Get audio info
+    auto info = ffmpeg->getAudioInfoFromData(wavData);
+    if (!info.isValid) {
+        statusBar()->showMessage("Could not read audio information");
+        return;
+    }
+
+    // DETECTION: Extract data and check if it's a stego audio
+    QByteArray extractedData = audioEngine->extractDataFromAudio(
+                wavData, info.sampleRate, info.channels, info.bitsPerSample, 2);
+
+    bool isStegoAudio = false;
+    bool isEncryptedStego = false;
+
+    if (!extractedData.isEmpty()) {
+        isStegoAudio = true;
+        if (extractedData.startsWith("ENCR")) {
+            isEncryptedStego = true;
         }
     }
 
-    //=============================================================================
-    // PROCESS DROPPED AUDIO (like processDroppedImage)
-    //=============================================================================
+    // Route to appropriate tab based on detection AND current mode
+    if (isAudioMode) {
+        // In AUDIO mode
+        if (isStegoAudio) {
+            // Load in extract tab (stego audio)
+            m_stegoAudioData = wavData;
+            m_currentSampleRate = info.sampleRate;
+            m_currentChannels = info.channels;
+            m_currentBitsPerSample = info.bitsPerSample;
+            currentToExtractPath = filePath;
 
+            // Update UI
+            QIcon placeholderIcon(":/resources/icons/music.svg");
+            stegoImageLabel->setPixmap(placeholderIcon.pixmap(stegoImageLabel->size()));
+            saveExtractedFileButton->setEnabled(true);
 
-
-    void MainWindow::processDroppedAudio(const QString &filePath)
-    {
-        if (filePath.isEmpty()) return;
-
-        // Check supported audio formats
-        if (!filePath.endsWith(".mp3", Qt::CaseInsensitive) &&
-        !filePath.endsWith(".wav", Qt::CaseInsensitive) &&
-        !filePath.endsWith(".flac", Qt::CaseInsensitive) &&
-        !filePath.endsWith(".ogg", Qt::CaseInsensitive)) {
-            statusBar()->showMessage("Unsupported audio format");
-            return;
-        }
-
-        // Convert to WAV for processing
-        QByteArray wavData;
-        if (!ffmpeg->convertToWav(filePath, wavData)) {
-            statusBar()->showMessage("Could not process audio file");
-            return;
-        }
-
-        // Get audio info
-        auto info = ffmpeg->getAudioInfoFromData(wavData);
-        if (!info.isValid) {
-            statusBar()->showMessage("Could not read audio information");
-            return;
-        }
-
-        // DETECTION: Extract data and check if it's a stego audio
-        QByteArray extractedData = audioEngine->extractDataFromAudio(
-        wavData, info.sampleRate, info.channels, info.bitsPerSample, 2);
-
-        bool isStegoAudio = false;
-        bool isEncryptedStego = false;
-
-        if (!extractedData.isEmpty()) {
-            isStegoAudio = true;
-            if (extractedData.startsWith("ENCR")) {
-                isEncryptedStego = true;
+            if (extractTab) {
+                tabWidget->setCurrentWidget(extractTab);
             }
+
+            statusBar()->showMessage(isEncryptedStego ?
+                                         "Encrypted stego audio loaded: " + filePath :
+                                         "Stego audio loaded: " + filePath);
         }
+        else {
+            // Load in hide tab as carrier audio
+            openAudioCarrierFromDrop(filePath);
+        }
+    }
+    else {
+        // In IMAGE mode - route to appropriate audio function based on detection
+        if (isStegoAudio) {
+            // Switch to audio mode first?
+            QMessageBox::information(this, "Audio Detected",
+                                     "This appears to be a stego audio file. Switching to Audio Mode.");
+            audioStegCheckBox->setChecked(true); // This will trigger onAudioStegToggled
 
-        // Route to appropriate tab based on detection AND current mode
-        if (isAudioMode) {
-            // In AUDIO mode
-            if (isStegoAudio) {
-                // Load in extract tab (stego audio)
-                m_stegoAudioData = wavData;
-                m_currentSampleRate = info.sampleRate;
-                m_currentChannels = info.channels;
-                m_currentBitsPerSample = info.bitsPerSample;
-                currentToExtractPath = filePath;
+            // Then load as stego
+            m_stegoAudioData = wavData;
+            m_currentSampleRate = info.sampleRate;
+            m_currentChannels = info.channels;
+            m_currentBitsPerSample = info.bitsPerSample;
+            currentToExtractPath = filePath;
 
-                // Update UI
-                QIcon placeholderIcon(":/resources/icons/music.svg");
-                stegoImageLabel->setPixmap(placeholderIcon.pixmap(stegoImageLabel->size()));
-                saveExtractedFileButton->setEnabled(true);
+            QIcon placeholderIcon(":/resources/icons/music.svg");
+            stegoImageLabel->setPixmap(placeholderIcon.pixmap(stegoImageLabel->size()));
+            saveExtractedFileButton->setEnabled(true);
 
-                if (extractTab) {
-                    tabWidget->setCurrentWidget(extractTab);
-                }
-
-                statusBar()->showMessage(isEncryptedStego ?
-                "Encrypted stego audio loaded: " + filePath :
-                "Stego audio loaded: " + filePath);
-            }
-            else {
-                // Load in hide tab as carrier audio
-                openAudioCarrierFromDrop(filePath);
+            if (extractTab) {
+                tabWidget->setCurrentWidget(extractTab);
             }
         }
         else {
-            // In IMAGE mode - route to appropriate audio function based on detection
-            if (isStegoAudio) {
-                // Switch to audio mode first?
-                QMessageBox::information(this, "Audio Detected",
-                "This appears to be a stego audio file. Switching to Audio Mode.");
-                audioStegCheckBox->setChecked(true); // This will trigger onAudioStegToggled
+            // Just a regular audio file - ask user what to do
+            QMessageBox::StandardButton reply;
+            reply = QMessageBox::question(this, "Audio File Dropped",
+                                          "This is an audio file. Switch to Audio Mode?",
+                                          QMessageBox::Yes | QMessageBox::No);
 
-                // Then load as stego
-                m_stegoAudioData = wavData;
-                m_currentSampleRate = info.sampleRate;
-                m_currentChannels = info.channels;
-                m_currentBitsPerSample = info.bitsPerSample;
-                currentToExtractPath = filePath;
-
-                QIcon placeholderIcon(":/resources/icons/music.svg");
-                stegoImageLabel->setPixmap(placeholderIcon.pixmap(stegoImageLabel->size()));
-                saveExtractedFileButton->setEnabled(true);
-
-                if (extractTab) {
-                    tabWidget->setCurrentWidget(extractTab);
-                }
-            }
-            else {
-                // Just a regular audio file - ask user what to do
-                QMessageBox::StandardButton reply;
-                reply = QMessageBox::question(this, "Audio File Dropped",
-                "This is an audio file. Switch to Audio Mode?",
-                QMessageBox::Yes | QMessageBox::No);
-
-                if (reply == QMessageBox::Yes) {
-                    audioStegCheckBox->setChecked(true);
-                    openAudioCarrierFromDrop(filePath);
-                }
+            if (reply == QMessageBox::Yes) {
+                audioStegCheckBox->setChecked(true);
+                openAudioCarrierFromDrop(filePath);
             }
         }
     }
+}
 
 
-    void MainWindow::onAudioStegToggled(bool checked)
-    {
-        isAudioMode = checked;
+void MainWindow::onAudioStegToggled(bool checked)
+{
+    isAudioMode = checked;
 
-        // Update UI elements based on mode
-        if (checked) {
-            currentMode = AudioMode;
+    // Update UI elements based on mode
+    if (checked) {
+        currentMode = AudioMode;
 
-            // Switching to AUDIO mode
-            // Change button texts
-            if (openImageButton) openImageButton->setText("Select Audio Carrier");
-            if (saveImageButton) saveImageButton->setText("Save Modified Audio");
-            if (openStegoImageButton) openStegoImageButton->setText("Open Audio with Hidden Data");
+        // Switching to AUDIO mode
+        // Change button texts
+        if (openImageButton) openImageButton->setText("Select Audio Carrier");
+        if (saveImageButton) saveImageButton->setText("Save Modified Audio");
+        if (openStegoImageButton) openStegoImageButton->setText("Open Audio with Hidden Data");
 
-            // Clear any image pixmaps and show text instead
-            if (originalImageLabel) {
-                originalImageLabel->setPixmap(QPixmap());
-                originalImageLabel->setText("Original Audio (not loaded)");
-            }
-            if (modifiedImageLabel) {
-                modifiedImageLabel->setPixmap(QPixmap());
-                modifiedImageLabel->setText("Modified Audio (not yet created)");
-            }
-
-            // Update capacity label
-            if (capacityLabel) {
-                capacityLabel->setText("Capacity: 0/0 bytes (0%)");
-            }
-
-            if (stegoImageLabel) {
-                stegoImageLabel->setPixmap(QPixmap());
-                stegoImageLabel->setText("Steganographic Audio (not loaded)");
-            }
-
-            // Disable camera button
-            if (cameraButton) cameraButton->setEnabled(false);
-
-        } else {
-            // Switching back to IMAGE mode
-            // Restore button texts
-            if (openImageButton) openImageButton->setText("Select Carrier Image");
-            if (saveImageButton) saveImageButton->setText("Save Modified Image");
-            if (openStegoImageButton) openStegoImageButton->setText("Open Image with Hidden Data");
-
-            // Restore image labels
-            if (originalImageLabel) {
-                originalImageLabel->setPixmap(QPixmap());
-                originalImageLabel->setText("Original Image");
-            }
-            if (modifiedImageLabel) {
-                modifiedImageLabel->setPixmap(QPixmap());
-                modifiedImageLabel->setText("Modified Image");
-            }
-
-            // Re-enable camera button
-            if (cameraButton) cameraButton->setEnabled(true);
-
-            // CRITICAL FIX: Re-enable and show text input based on current radio button state
-            toggleInputMethod();
-
-            // Restore image capacity
-            updateCapacityStatus();
+        // Clear any image pixmaps and show text instead
+        if (originalImageLabel) {
+            originalImageLabel->setPixmap(QPixmap());
+            originalImageLabel->setText("Original Audio (not loaded)");
+        }
+        if (modifiedImageLabel) {
+            modifiedImageLabel->setPixmap(QPixmap());
+            modifiedImageLabel->setText("Modified Audio (not yet created)");
         }
 
-        // Force layout update
-        if (mainLayout) {
-            mainLayout->activate();
-        }
-        this->adjustSize();
-    }
-
-    void MainWindow::onVideoStegToggled(bool checked)
-    {
-        //isAudioMode = checked;
-
-        // Update UI elements based on mode
-        if (checked) {
-            currentMode = VideoMode;
-            // Switching to AUDIO mode
-            // Change button texts
-            if (openImageButton) openImageButton->setText("Select Audio Carrier");
-            if (saveImageButton) saveImageButton->setText("Save Modified Audio");
-            if (openStegoImageButton) openStegoImageButton->setText("Open Audio with Hidden Data");
-
-            // Clear any image pixmaps and show text instead
-            if (originalImageLabel) {
-                originalImageLabel->setPixmap(QPixmap());
-                originalImageLabel->setText("Original Audio (not loaded)");
-            }
-            if (modifiedImageLabel) {
-                modifiedImageLabel->setPixmap(QPixmap());
-                modifiedImageLabel->setText("Modified Audio (not yet created)");
-            }
-
-            // Update capacity label
-            if (capacityLabel) {
-                capacityLabel->setText("Capacity: 0/0 bytes (0%)");
-            }
-
-            if (stegoImageLabel) {
-                stegoImageLabel->setPixmap(QPixmap());
-                stegoImageLabel->setText("Steganographic Audio (not loaded)");
-            }
-
-            // Disable camera button
-            if (cameraButton) cameraButton->setEnabled(false);
-
-        } else {
-            // Switching back to IMAGE mode
-            // Restore button texts
-            if (openImageButton) openImageButton->setText("Select Carrier Image");
-            if (saveImageButton) saveImageButton->setText("Save Modified Image");
-            if (openStegoImageButton) openStegoImageButton->setText("Open Image with Hidden Data");
-
-            // Restore image labels
-            if (originalImageLabel) {
-                originalImageLabel->setPixmap(QPixmap());
-                originalImageLabel->setText("Original Image");
-            }
-            if (modifiedImageLabel) {
-                modifiedImageLabel->setPixmap(QPixmap());
-                modifiedImageLabel->setText("Modified Image");
-            }
-
-            // Re-enable camera button
-            if (cameraButton) cameraButton->setEnabled(true);
-
-            // CRITICAL FIX: Re-enable and show text input based on current radio button state
-            toggleInputMethod();
-
-            // Restore image capacity
-            updateCapacityStatus();
+        // Update capacity label
+        if (capacityLabel) {
+            capacityLabel->setText("Capacity: 0/0 bytes (0%)");
         }
 
-        // Force layout update
-        if (mainLayout) {
-            mainLayout->activate();
-        }
-        this->adjustSize();
-    }
-
-
-
-    void MainWindow::openAudioCarrierFromDrop(const QString &filePath)
-    {
-        if (filePath.isEmpty()) return;
-
-        m_stegoAudioData.clear();
-        currentToExtractPath.clear();
-
-        statusBar()->showMessage("Loading audio file...");
-        QApplication::processEvents();
-
-        // Convert to WAV using FFmpeg
-        QByteArray wavData;
-        if (!ffmpeg->convertToWav(filePath, wavData)) {
-            QMessageBox::warning(this, "Error", "Could not convert audio file to WAV format");
-            return;
+        if (stegoImageLabel) {
+            stegoImageLabel->setPixmap(QPixmap());
+            stegoImageLabel->setText("Steganographic Audio (not loaded)");
         }
 
-        // Get metadata
-        auto info = ffmpeg->getAudioInfoFromData(wavData);
-        if (!info.isValid) {
-            QMessageBox::warning(this, "Error", "Could not read audio file information");
-            return;
+        // Disable camera button
+        if (cameraButton) cameraButton->setEnabled(false);
+
+    } else {
+        // Switching back to IMAGE mode
+        // Restore button texts
+        if (openImageButton) openImageButton->setText("Select Carrier Image");
+        if (saveImageButton) saveImageButton->setText("Save Modified Image");
+        if (openStegoImageButton) openStegoImageButton->setText("Open Image with Hidden Data");
+
+        // Restore image labels
+        if (originalImageLabel) {
+            originalImageLabel->setPixmap(QPixmap());
+            originalImageLabel->setText("Original Image");
+        }
+        if (modifiedImageLabel) {
+            modifiedImageLabel->setPixmap(QPixmap());
+            modifiedImageLabel->setText("Modified Image");
         }
 
-        // Store data
-        m_currentAudioPath = filePath;
-        m_currentAudioData = wavData;
-        m_currentSampleRate = info.sampleRate;
-        m_currentChannels = info.channels;
-        m_currentBitsPerSample = info.bitsPerSample;
-        m_currentDuration = info.durationSeconds;
-        m_modifiedAudioData.clear();
+        // Re-enable camera button
+        if (cameraButton) cameraButton->setEnabled(true);
 
-        // Update UI (reuse existing labels but change text)
-        originalImageLabel->setText(QString("Audio: %1\n%2 Hz, %3 ch, %4 bit, %5 s")
-        .arg(QFileInfo(filePath).fileName())
-        .arg(info.sampleRate)
-        .arg(info.channels)
-        .arg(info.bitsPerSample)
-        .arg(info.durationSeconds));
-        modifiedImageLabel->setText("Modified Audio (not yet created)");
+        // CRITICAL FIX: Re-enable and show text input based on current radio button state
+        toggleInputMethod();
 
-        // Clear any pixmaps
-        originalImageLabel->setPixmap(QPixmap());
-        modifiedImageLabel->setPixmap(QPixmap());
-        QIcon placeholderIcon(":/resources/icons/music.svg");
-        originalImageLabel->setPixmap(placeholderIcon.pixmap(originalImageLabel->size()));
-
-        currentCarrierPath = filePath;
-        updateAudioCapacity();
-        hideButton->setEnabled(true);
-        saveImageButton->setEnabled(false);
-
-        statusBar()->showMessage("Loaded: " + QFileInfo(filePath).fileName());
+        // Restore image capacity
+        updateCapacityStatus();
     }
 
-    void MainWindow::onAudioVolumeChanged(int volume)
-    {
-        m_audioVolumeSlider->setValue(volume);
-        m_audioVolumeLabel->setText(QString("%1%").arg(volume));
+    // Force layout update
+    if (mainLayout) {
+        mainLayout->activate();
     }
+    this->adjustSize();
+}
 
-    void MainWindow::onAudioPositionChanged(qint64 position)
-    {
-        // Only update if user isn't dragging
-        if (!m_audioProgressSlider->isSliderDown()) {
-            qint64 duration = audioPlayer->duration();
-            if (duration > 0) {
-                int percent = (position * 100) / duration;
-                m_audioProgressSlider->setValue(percent);
-            }
-            updateTimeLabel(position, audioPlayer->duration());
+void MainWindow::onVideoStegToggled(bool checked)
+{
+    //isAudioMode = checked;
+
+    // Update UI elements based on mode
+    if (checked) {
+        currentMode = VideoMode;
+        // Switching to AUDIO mode
+        // Change button texts
+        if (openImageButton) openImageButton->setText("Select Audio Carrier");
+        if (saveImageButton) saveImageButton->setText("Save Modified Audio");
+        if (openStegoImageButton) openStegoImageButton->setText("Open Audio with Hidden Data");
+
+        // Clear any image pixmaps and show text instead
+        if (originalImageLabel) {
+            originalImageLabel->setPixmap(QPixmap());
+            originalImageLabel->setText("Original Audio (not loaded)");
         }
-    }
-
-    void MainWindow::onAudioDurationChanged(qint64 duration)
-    {
-        updateTimeLabel(audioPlayer->position(), duration);
-    }
-
-    void MainWindow::onMediaLoaded(const QString &fileName)
-    {
-        statusBar()->showMessage("Loaded: " + fileName, 3000);
-        // Optionally enable play button
-        m_audioPlayButton->setEnabled(true);
-    }
-
-    void MainWindow::onPlaybackStarted()
-    {
-        m_audioPlayButton->setEnabled(false);
-        m_audioPauseButton->setEnabled(true);
-        m_audioStopButton->setEnabled(true);
-    }
-
-    void MainWindow::onPlaybackPaused()
-    {
-        m_audioPlayButton->setEnabled(true);
-        m_audioPauseButton->setEnabled(false);
-        m_audioStopButton->setEnabled(true);
-    }
-
-    void MainWindow::onPlaybackStopped()
-    {
-        m_audioPlayButton->setEnabled(true);
-        m_audioPauseButton->setEnabled(false);
-        m_audioStopButton->setEnabled(false);
-        m_audioProgressSlider->setValue(0);
-        updateTimeLabel(0, 0);
-    }
-
-
-
-    QString MainWindow::formatTime(qint64 milliseconds)
-    {
-        if (milliseconds <= 0) return "00:00";
-
-        int totalSeconds = milliseconds / 1000;
-        int minutes = totalSeconds / 60;
-        int seconds = totalSeconds % 60;
-
-        return QString("%1:%2")
-        .arg(minutes, 2, 10, QChar('0'))
-        .arg(seconds, 2, 10, QChar('0'));
-    }
-
-    void MainWindow::updateTimeLabel(qint64 position, qint64 duration)
-    {
-        QString currentStr = formatTime(position);
-        QString totalStr = formatTime(duration);
-        m_audioTimeLabel->setText(QString("%1 / %2").arg(currentStr).arg(totalStr));
-    }
-
-
-    QMenu* MainWindow::createImageContextMenu(QLabel* label, const QImage& image)
-    {
-        QMenu* menu = new QMenu(this);
-
-        QAction* copyAction = menu->addAction("Copy to Clipboard");
-        menu->addSeparator();
-
-        QMenu* aspectMenu = menu->addMenu("Aspect Ratio");
-        QAction* actionKeepAspect = aspectMenu->addAction("Default (Keep Aspect)");
-        QAction* actionZoom = aspectMenu->addAction("Zoom (Fill)");
-        QAction* actionStretch = aspectMenu->addAction("Stretch (Ignore Aspect)");
-
-        // Determine which label this is
-        Qt::AspectRatioMode* currentMode = nullptr;
-        if (label == originalImageLabel) {
-            currentMode = &m_originalAspectMode;
-        } else if (label == modifiedImageLabel) {
-            currentMode = &m_modifiedAspectMode;
-        } else if (label == stegoImageLabel) {
-            currentMode = &m_stegoAspectMode;
+        if (modifiedImageLabel) {
+            modifiedImageLabel->setPixmap(QPixmap());
+            modifiedImageLabel->setText("Modified Audio (not yet created)");
         }
 
-        // Check current mode
-        if (currentMode) {
-            actionKeepAspect->setCheckable(true);
-            actionZoom->setCheckable(true);
-            actionStretch->setCheckable(true);
-
-            actionKeepAspect->setChecked(*currentMode == Qt::KeepAspectRatio);
-            actionZoom->setChecked(*currentMode == Qt::KeepAspectRatioByExpanding);
-            actionStretch->setChecked(*currentMode == Qt::IgnoreAspectRatio);
+        // Update capacity label
+        if (capacityLabel) {
+            capacityLabel->setText("Capacity: 0/0 bytes (0%)");
         }
 
-        // Connect actions
-        connect(actionKeepAspect, &QAction::triggered, this, [this, label, image, currentMode]() {
-            if (currentMode) *currentMode = Qt::KeepAspectRatio;
-            if (!image.isNull()) {
-                QPixmap pixmap = QPixmap::fromImage(image);
-                label->setPixmap(pixmap.scaled(label->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
-            }
-            statusBar()->showMessage("Aspect: Default (Keep Aspect)", 2000);
-        });
-
-        connect(actionZoom, &QAction::triggered, this, [this, label, image, currentMode]() {
-            if (currentMode) *currentMode = Qt::KeepAspectRatioByExpanding;
-            if (!image.isNull()) {
-                QPixmap pixmap = QPixmap::fromImage(image);
-                label->setPixmap(pixmap.scaled(label->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation));
-            }
-            statusBar()->showMessage("Aspect: Zoom - edges may be cropped", 2000);
-        });
-
-        connect(actionStretch, &QAction::triggered, this, [this, label, image, currentMode]() {
-            if (currentMode) *currentMode = Qt::IgnoreAspectRatio;
-            if (!image.isNull()) {
-                QPixmap pixmap = QPixmap::fromImage(image);
-                label->setPixmap(pixmap.scaled(label->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
-            }
-            statusBar()->showMessage("Aspect: Stretched", 2000);
-        });
-
-        connect(copyAction, &QAction::triggered, this, [label]() {
-            if (!label->pixmap().isNull()) {
-                QApplication::clipboard()->setPixmap(label->pixmap());
-            }
-        });
-
-        return menu;
-    }
-
-    void MainWindow::showSandboxWarning() {
-        QSettings settings;
-
-        // Check if the user previously chose "Do not show again"
-        if (settings.value("sandboxWarningDoNotShow", false).toBool())
-            return;
-
-        // Create message box
-        QMessageBox msg;
-        msg.setWindowTitle("Sandboxed Filesystem Notice");
-        msg.setText(
-            "Due to Flathub permissions, Music and Pictures folders are sandboxed.\n"
-            "You will need to manually copy the needed files into:\n\n" +
-            Constants::imagesPath
-        );
-        msg.setIcon(QMessageBox::Information);
-
-        // Only OK button
-        msg.setStandardButtons(QMessageBox::Ok);
-
-        // Add Do Not Show Again checkbox
-        QCheckBox* checkBox = new QCheckBox("Do not show again");
-        msg.setCheckBox(checkBox);
-
-        // Execute
-        msg.exec();
-
-        // Save preference if checkbox is checked
-        if (checkBox->isChecked()) {
-            settings.setValue("sandboxWarningDoNotShow", true);
+        if (stegoImageLabel) {
+            stegoImageLabel->setPixmap(QPixmap());
+            stegoImageLabel->setText("Steganographic Audio (not loaded)");
         }
 
-        // File dialog should be opened by the caller after this function returns
-    }
+        // Disable camera button
+        if (cameraButton) cameraButton->setEnabled(false);
 
+    } else {
+        // Switching back to IMAGE mode
+        // Restore button texts
+        if (openImageButton) openImageButton->setText("Select Carrier Image");
+        if (saveImageButton) saveImageButton->setText("Save Modified Image");
+        if (openStegoImageButton) openStegoImageButton->setText("Open Image with Hidden Data");
 
-    void MainWindow::showStegoFolderWarning() {
-        QSettings settings;
-
-        // Check if the user previously chose "Do not show again"
-        if (settings.value("stegoFolderWarningDoNotShow", false).toBool())
-            return;
-
-        // Create message box
-        QMessageBox msg;
-        msg.setWindowTitle("Save Stego Images Notice");
-        msg.setText(
-            "Due to Flathub sandboxing, Ermis cannot open files outside the sandbox.\n"
-            "When you receive Ermis steganography files from others,\n"
-            "Please move them into this folder:\n\n" +
-            Constants::fusedImagesPath
-        );
-        msg.setIcon(QMessageBox::Information);
-
-        // Only OK button
-        msg.setStandardButtons(QMessageBox::Ok);
-
-        // Add Do Not Show Again checkbox
-        QCheckBox* checkBox = new QCheckBox("Do not show again");
-        msg.setCheckBox(checkBox);
-
-        // Execute
-        msg.exec();
-
-        // Save preference if checkbox is checked
-        if (checkBox->isChecked()) {
-            settings.setValue("stegoFolderWarningDoNotShow", true);
+        // Restore image labels
+        if (originalImageLabel) {
+            originalImageLabel->setPixmap(QPixmap());
+            originalImageLabel->setText("Original Image");
+        }
+        if (modifiedImageLabel) {
+            modifiedImageLabel->setPixmap(QPixmap());
+            modifiedImageLabel->setText("Modified Image");
         }
 
-        // The actual save/open dialog should be called by the caller after this returns
+        // Re-enable camera button
+        if (cameraButton) cameraButton->setEnabled(true);
+
+        // CRITICAL FIX: Re-enable and show text input based on current radio button state
+        toggleInputMethod();
+
+        // Restore image capacity
+        updateCapacityStatus();
     }
 
+    // Force layout update
+    if (mainLayout) {
+        mainLayout->activate();
+    }
+    this->adjustSize();
+}
 
-    void MainWindow::openFolder() {
-        // Optional: Check if the folder exists
-        QDir dir(Constants::appDirPath);
-        if (!dir.exists()) {
-            return;
+
+
+void MainWindow::openAudioCarrierFromDrop(const QString &filePath)
+{
+    if (filePath.isEmpty()) return;
+
+    m_stegoAudioData.clear();
+    currentToExtractPath.clear();
+
+    statusBar()->showMessage("Loading audio file...");
+    QApplication::processEvents();
+
+    // Convert to WAV using FFmpeg
+    QByteArray wavData;
+    if (!ffmpeg->convertToWav(filePath, wavData)) {
+        QMessageBox::warning(this, "Error", "Could not convert audio file to WAV format");
+        return;
+    }
+
+    // Get metadata
+    auto info = ffmpeg->getAudioInfoFromData(wavData);
+    if (!info.isValid) {
+        QMessageBox::warning(this, "Error", "Could not read audio file information");
+        return;
+    }
+
+    // Store data
+    m_currentAudioPath = filePath;
+    m_currentAudioData = wavData;
+    m_currentSampleRate = info.sampleRate;
+    m_currentChannels = info.channels;
+    m_currentBitsPerSample = info.bitsPerSample;
+    m_currentDuration = info.durationSeconds;
+    m_modifiedAudioData.clear();
+
+    // Update UI (reuse existing labels but change text)
+    originalImageLabel->setText(QString("Audio: %1\n%2 Hz, %3 ch, %4 bit, %5 s")
+                                .arg(QFileInfo(filePath).fileName())
+                                .arg(info.sampleRate)
+                                .arg(info.channels)
+                                .arg(info.bitsPerSample)
+                                .arg(info.durationSeconds));
+    modifiedImageLabel->setText("Modified Audio (not yet created)");
+
+    // Clear any pixmaps
+    originalImageLabel->setPixmap(QPixmap());
+    modifiedImageLabel->setPixmap(QPixmap());
+    QIcon placeholderIcon(":/resources/icons/music.svg");
+    originalImageLabel->setPixmap(placeholderIcon.pixmap(originalImageLabel->size()));
+
+    currentCarrierPath = filePath;
+    updateAudioCapacity();
+    hideButton->setEnabled(true);
+    saveImageButton->setEnabled(false);
+
+    statusBar()->showMessage("Loaded: " + QFileInfo(filePath).fileName());
+}
+
+void MainWindow::onAudioVolumeChanged(int volume)
+{
+    m_audioVolumeSlider->setValue(volume);
+    m_audioVolumeLabel->setText(QString("%1%").arg(volume));
+}
+
+void MainWindow::onAudioPositionChanged(qint64 position)
+{
+    // Only update if user isn't dragging
+    if (!m_audioProgressSlider->isSliderDown()) {
+        qint64 duration = audioPlayer->duration();
+        if (duration > 0) {
+            int percent = (position * 100) / duration;
+            m_audioProgressSlider->setValue(percent);
         }
+        updateTimeLabel(position, audioPlayer->duration());
+    }
+}
 
-        // Convert local path to URL and open
-        if (!QDesktopServices::openUrl(QUrl::fromLocalFile(Constants::appDirPath))) {
+void MainWindow::onAudioDurationChanged(qint64 duration)
+{
+    updateTimeLabel(audioPlayer->position(), duration);
+}
+
+void MainWindow::onMediaLoaded(const QString &fileName)
+{
+    statusBar()->showMessage("Loaded: " + fileName, 3000);
+    // Optionally enable play button
+    m_audioPlayButton->setEnabled(true);
+}
+
+void MainWindow::onPlaybackStarted()
+{
+    m_audioPlayButton->setEnabled(false);
+    m_audioPauseButton->setEnabled(true);
+    m_audioStopButton->setEnabled(true);
+}
+
+void MainWindow::onPlaybackPaused()
+{
+    m_audioPlayButton->setEnabled(true);
+    m_audioPauseButton->setEnabled(false);
+    m_audioStopButton->setEnabled(true);
+}
+
+void MainWindow::onPlaybackStopped()
+{
+    m_audioPlayButton->setEnabled(true);
+    m_audioPauseButton->setEnabled(false);
+    m_audioStopButton->setEnabled(false);
+    m_audioProgressSlider->setValue(0);
+    updateTimeLabel(0, 0);
+}
+
+
+
+QString MainWindow::formatTime(qint64 milliseconds)
+{
+    if (milliseconds <= 0) return "00:00";
+
+    int totalSeconds = milliseconds / 1000;
+    int minutes = totalSeconds / 60;
+    int seconds = totalSeconds % 60;
+
+    return QString("%1:%2")
+            .arg(minutes, 2, 10, QChar('0'))
+            .arg(seconds, 2, 10, QChar('0'));
+}
+
+void MainWindow::updateTimeLabel(qint64 position, qint64 duration)
+{
+    QString currentStr = formatTime(position);
+    QString totalStr = formatTime(duration);
+    m_audioTimeLabel->setText(QString("%1 / %2").arg(currentStr).arg(totalStr));
+}
+
+
+QMenu* MainWindow::createImageContextMenu(QLabel* label, const QImage& image)
+{
+    QMenu* menu = new QMenu(this);
+
+    QAction* copyAction = menu->addAction("Copy to Clipboard");
+    menu->addSeparator();
+
+    QMenu* aspectMenu = menu->addMenu("Aspect Ratio");
+    QAction* actionKeepAspect = aspectMenu->addAction("Default (Keep Aspect)");
+    QAction* actionZoom = aspectMenu->addAction("Zoom (Fill)");
+    QAction* actionStretch = aspectMenu->addAction("Stretch (Ignore Aspect)");
+
+    // Determine which label this is
+    Qt::AspectRatioMode* currentMode = nullptr;
+    if (label == originalImageLabel) {
+        currentMode = &m_originalAspectMode;
+    } else if (label == modifiedImageLabel) {
+        currentMode = &m_modifiedAspectMode;
+    } else if (label == stegoImageLabel) {
+        currentMode = &m_stegoAspectMode;
+    }
+
+    // Check current mode
+    if (currentMode) {
+        actionKeepAspect->setCheckable(true);
+        actionZoom->setCheckable(true);
+        actionStretch->setCheckable(true);
+
+        actionKeepAspect->setChecked(*currentMode == Qt::KeepAspectRatio);
+        actionZoom->setChecked(*currentMode == Qt::KeepAspectRatioByExpanding);
+        actionStretch->setChecked(*currentMode == Qt::IgnoreAspectRatio);
+    }
+
+    // Connect actions
+    connect(actionKeepAspect, &QAction::triggered, this, [this, label, image, currentMode]() {
+        if (currentMode) *currentMode = Qt::KeepAspectRatio;
+        if (!image.isNull()) {
+            QPixmap pixmap = QPixmap::fromImage(image);
+            label->setPixmap(pixmap.scaled(label->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
         }
-    }
+        statusBar()->showMessage("Aspect: Default (Keep Aspect)", 2000);
+    });
 
-
-    void MainWindow::openTextSteganography()
-    {
-        // Create and show the text steganography dialog
-        dialog->show();
-        //dialog.exec();  // Modal dialog
-
-        // After dialog closes, you could optionally update something
-        // statusBar()->showMessage("Text steganography completed");
-    }
-
-    void MainWindow::performFactoryReset()
-    {
-        QMessageBox::StandardButton reply = QMessageBox::question(
-            this,
-            "Factory Reset",
-            "This will delete all saved settings and restore default values.\n"
-            "Use this option if you experience erratic behavior\n"
-            "especially in the network stack.\n"
-            "All your files will be preserved.\n"
-            "This action cannot be undone.\n\n"
-            "Do you want to continue?",
-            QMessageBox::Yes | QMessageBox::No
-        );
-
-        if (reply != QMessageBox::Yes)
-            return;
-
-        // Get the settings file path
-        QSettings settings;
-        QString settingsFile = settings.fileName();
-
-        // Clear all settings
-        settings.clear();
-
-        // Sync to disk
-        settings.sync();
-
-        // Delete the settings file
-        QFile::remove(settingsFile);
-
-
-        // Show success message
-        QMessageBox::information(
-            this,
-            "Factory Reset Complete",
-            "All settings have been reset to default values.\n\n"
-            "Please restart the application for changes to take effect."
-        );
-
-        // Ask to restart
-        QMessageBox::StandardButton restart = QMessageBox::question(
-            this,
-            "Restart Required",
-            "Would you like to restart the application now?",
-            QMessageBox::Yes | QMessageBox::No
-        );
-
-        if (restart == QMessageBox::Yes) {
-            qApp->quit();
-            QProcess::startDetached(qApp->applicationFilePath(), QStringList());
+    connect(actionZoom, &QAction::triggered, this, [this, label, image, currentMode]() {
+        if (currentMode) *currentMode = Qt::KeepAspectRatioByExpanding;
+        if (!image.isNull()) {
+            QPixmap pixmap = QPixmap::fromImage(image);
+            label->setPixmap(pixmap.scaled(label->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation));
         }
+        statusBar()->showMessage("Aspect: Zoom - edges may be cropped", 2000);
+    });
+
+    connect(actionStretch, &QAction::triggered, this, [this, label, image, currentMode]() {
+        if (currentMode) *currentMode = Qt::IgnoreAspectRatio;
+        if (!image.isNull()) {
+            QPixmap pixmap = QPixmap::fromImage(image);
+            label->setPixmap(pixmap.scaled(label->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+        }
+        statusBar()->showMessage("Aspect: Stretched", 2000);
+    });
+
+    connect(copyAction, &QAction::triggered, this, [label]() {
+        if (!label->pixmap().isNull()) {
+            QApplication::clipboard()->setPixmap(label->pixmap());
+        }
+    });
+
+    return menu;
+}
+
+void MainWindow::showSandboxWarning() {
+    QSettings settings;
+
+    // Check if the user previously chose "Do not show again"
+    if (settings.value("sandboxWarningDoNotShow", false).toBool())
+        return;
+
+    // Create message box
+    QMessageBox msg;
+    msg.setWindowTitle("Sandboxed Filesystem Notice");
+    msg.setText(
+                "Due to Flathub permissions, Music and Pictures folders are sandboxed.\n"
+                "You will need to manually copy the needed files into:\n\n" +
+                Constants::imagesPath
+                );
+    msg.setIcon(QMessageBox::Information);
+
+    // Only OK button
+    msg.setStandardButtons(QMessageBox::Ok);
+
+    // Add Do Not Show Again checkbox
+    QCheckBox* checkBox = new QCheckBox("Do not show again");
+    msg.setCheckBox(checkBox);
+
+    // Execute
+    msg.exec();
+
+    // Save preference if checkbox is checked
+    if (checkBox->isChecked()) {
+        settings.setValue("sandboxWarningDoNotShow", true);
     }
 
-    void MainWindow::onOpenPingDialog()
-    {
+    // File dialog should be opened by the caller after this function returns
+}
+
+
+void MainWindow::showStegoFolderWarning() {
+    QSettings settings;
+
+    // Check if the user previously chose "Do not show again"
+    if (settings.value("stegoFolderWarningDoNotShow", false).toBool())
+        return;
+
+    // Create message box
+    QMessageBox msg;
+    msg.setWindowTitle("Save Stego Images Notice");
+    msg.setText(
+                "Due to Flathub sandboxing, Ermis cannot open files outside the sandbox.\n"
+                "When you receive Ermis steganography files from others,\n"
+                "Please move them into this folder:\n\n" +
+                Constants::fusedImagesPath
+                );
+    msg.setIcon(QMessageBox::Information);
+
+    // Only OK button
+    msg.setStandardButtons(QMessageBox::Ok);
+
+    // Add Do Not Show Again checkbox
+    QCheckBox* checkBox = new QCheckBox("Do not show again");
+    msg.setCheckBox(checkBox);
+
+    // Execute
+    msg.exec();
+
+    // Save preference if checkbox is checked
+    if (checkBox->isChecked()) {
+        settings.setValue("stegoFolderWarningDoNotShow", true);
+    }
+
+    // The actual save/open dialog should be called by the caller after this returns
+}
+
+
+void MainWindow::openFolder() {
+    // Optional: Check if the folder exists
+    QDir dir(Constants::appDirPath);
+    if (!dir.exists()) {
+        return;
+    }
+
+    // Convert local path to URL and open
+    if (!QDesktopServices::openUrl(QUrl::fromLocalFile(Constants::appDirPath))) {
+    }
+}
+
+
+void MainWindow::openTextSteganography()
+{
+    // Create and show the text steganography dialog
+    if(dialog && dialog->isHidden()){
+    dialog->onClearAll();
+    dialog->show();
+    }
+
+}
+
+void MainWindow::performFactoryReset()
+{
+    QMessageBox::StandardButton reply = QMessageBox::question(
+                this,
+                "Factory Reset",
+                "This will delete all saved settings and restore default values.\n"
+                "Use this option if you experience erratic behavior\n"
+                "especially in the network stack.\n"
+                "All your files will be preserved.\n"
+                "This action cannot be undone.\n\n"
+                "Do you want to continue?",
+                QMessageBox::Yes | QMessageBox::No
+                );
+
+    if (reply != QMessageBox::Yes)
+        return;
+
+    // Get the settings file path
+    QSettings settings;
+    QString settingsFile = settings.fileName();
+
+    // Clear all settings
+    settings.clear();
+
+    // Sync to disk
+    settings.sync();
+
+    // Delete the settings file
+    QFile::remove(settingsFile);
+
+
+    // Show success message
+    QMessageBox::information(
+                this,
+                "Factory Reset Complete",
+                "All settings have been reset to default values.\n\n"
+                "Please restart the application for changes to take effect."
+                );
+
+    // Ask to restart
+    QMessageBox::StandardButton restart = QMessageBox::question(
+                this,
+                "Restart Required",
+                "Would you like to restart the application now?",
+                QMessageBox::Yes | QMessageBox::No
+                );
+
+    if (restart == QMessageBox::Yes) {
+        qApp->quit();
+        QProcess::startDetached(qApp->applicationFilePath(), QStringList());
+    }
+}
+
+void MainWindow::onOpenPingDialog()
+{
 
 #ifdef FLATPAK_BUILD
     QSettings settings;
@@ -2842,17 +2902,17 @@ void MainWindow::onCameraButtonClicked()
         QMessageBox msgBox;
         msgBox.setWindowTitle("Flatpak Sandbox Notice");
         msgBox.setText(
-            "Due to Flatpak sandbox restrictions, you may not be able to send files residing\n"
-            "outside the Ermis data directory.\n\n"
-            "For best results, place files you want to send via network steganography in:\n"
-            + Constants::appDirPath + "\n\n"
-            "To grant home directory access for more flexibility:\n\n"
-            "Option 1 - Terminal:\n"
-            "  flatpak override --user --filesystem=home io.github.alamahant.Ermis\n\n"
-            "Option 2 - Flatseal:\n"
-            "  Install Flatseal from Flathub and grant 'Home' access to Ermis.\n\n"
-            "After granting access, restart Ermis."
-        );
+                    "Due to Flatpak sandbox restrictions, you may not be able to send files residing\n"
+                    "outside the Ermis data directory.\n\n"
+                    "For best results, place files you want to send via network steganography in:\n"
+                    + Constants::appDirPath + "\n\n"
+                                              "To grant home directory access for more flexibility:\n\n"
+                                              "Option 1 - Terminal:\n"
+                                              "  flatpak override --user --filesystem=home io.github.alamahant.Ermis\n\n"
+                                              "Option 2 - Flatseal:\n"
+                                              "  Install Flatseal from Flathub and grant 'Home' access to Ermis.\n\n"
+                                              "After granting access, restart Ermis."
+                    );
         msgBox.setIcon(QMessageBox::Information);
 
         QCheckBox *doNotShowCheckBox = new QCheckBox("Do not show this again");
@@ -2869,159 +2929,173 @@ void MainWindow::onCameraButtonClicked()
         }
     }
 #endif
-
-        pingDialog->show();
+    if(pingDialog && pingDialog->isHidden()){
+    //pingDialog->onClearAll();
+    pingDialog->show();
     }
+}
 
-    void MainWindow::setTheme(bool checked){
-            QSettings settings;
-
-            if (checked) {
-                // Apply dark theme
-                QFile file(":/resources/dark.css");
-                if (file.open(QFile::ReadOnly)) {
-                    QString styleSheet = file.readAll();
-                    this->setStyleSheet(styleSheet);
-                    file.close();
-                    settings.setValue("theme/dark", true);
-                    settings.sync();
-                    isDarkTheme = true;
-                    qDebug() << "Dark theme applied";
-                } else {
-                    qWarning() << "Failed to load dark.css";
-                }
-            } else {
-                // Apply light theme
-                this->setStyleSheet("");
-
-                extractSplitter->setStyleSheet(
-                    "QSplitter::handle {"
-                    "    background-color: #e0c9a6;"
-                    "    height: 3px;"
-                    "}"
-                    "QSplitter::handle:hover {"
-                    "    background-color: #c9b386;"
-                    "}"
-                );
-
-                hideSplitter->setStyleSheet(
-                    "QSplitter::handle {"
-                    "    background-color: #e0c9a6;"
-                    "    height: 3px;"
-                    "}"
-                    "QSplitter::handle:hover {"
-                    "    background-color: #c9b386;"
-                    "}"
-                );
-
-                settings.setValue("theme/dark", false);
-                settings.sync();
-                isDarkTheme = false;
-                qDebug() << "Light theme applied";
-            }
-    }
+void MainWindow::setTheme(bool checked){
 
 
-    void MainWindow::createErmisSymlink()
-    {
-#ifdef FLATPAK_BUILD
-        QString msg = "";
-        QMessageBox msgBox;
-        msgBox.setWindowTitle("Flatpak Permission Required");
-        msgBox.setText(QString(
-            "%1 is running as a Flatpak and may not have access to your home directory.\n\n"
-            "To create a symlink, you may need to grant home directory access first.\n\n"
-            "Option 1 - Terminal:\n"
-            "  Grant access:\n"
-            "    flatpak override --user --filesystem=home io.github.alamahant.%1\n\n"
-            "  Revoke access later:\n"
-            "    flatpak override --user --nofilesystem=home io.github.alamahant.%1\n\n"
-            "Option 2 - Flatseal:\n"
-            "  Install Flatseal from Flathub and grant 'Home' access to %1.\n\n"
-            "If you have already granted permissions, you can continue."
-        ).arg(QApplication::applicationName()));
 
-        msgBox.setIcon(QMessageBox::Information);
+    if (checked) {
+        // Apply dark theme
+        QFile file(":/resources/dark.css");
+        if (file.open(QFile::ReadOnly)) {
+            QString styleSheet = file.readAll();
+            this->setStyleSheet(styleSheet);
+            file.close();
 
-        QPushButton *continueButton = msgBox.addButton("Continue", QMessageBox::AcceptRole);
-        QPushButton *cancelButton = msgBox.addButton("Cancel", QMessageBox::RejectRole);
-        msgBox.setDefaultButton(cancelButton);
-
-        msgBox.exec();
-
-        if (msgBox.clickedButton() != continueButton) {
-            return; // User cancelled
+        } else {
+            qWarning() << "Failed to load dark.css";
         }
+    } else {
+        // Apply light theme
+        this->setStyleSheet("");
+
+        extractSplitter->setStyleSheet(
+                    "QSplitter::handle {"
+                    "    background-color: #e0c9a6;"
+                    "    height: 3px;"
+                    "}"
+                    "QSplitter::handle:hover {"
+                    "    background-color: #c9b386;"
+                    "}"
+                    );
+
+        hideSplitter->setStyleSheet(
+                    "QSplitter::handle {"
+                    "    background-color: #e0c9a6;"
+                    "    height: 3px;"
+                    "}"
+                    "QSplitter::handle:hover {"
+                    "    background-color: #c9b386;"
+                    "}"
+                    );
+
+
+    }
+
+}
+
+
+void MainWindow::createErmisSymlink()
+{
+#ifdef FLATPAK_BUILD
+    QString msg = "";
+    QMessageBox msgBox;
+    msgBox.setWindowTitle("Flatpak Permission Required");
+    msgBox.setText(QString(
+                       "%1 is running as a Flatpak and may not have access to your home directory.\n\n"
+                       "To create a symlink, you may need to grant home directory access first.\n\n"
+                       "Option 1 - Terminal:\n"
+                       "  Grant access:\n"
+                       "    flatpak override --user --filesystem=home io.github.alamahant.%1\n\n"
+                       "  Revoke access later:\n"
+                       "    flatpak override --user --nofilesystem=home io.github.alamahant.%1\n\n"
+                       "Option 2 - Flatseal:\n"
+                       "  Install Flatseal from Flathub and grant 'Home' access to %1.\n\n"
+                       "If you have already granted permissions, you can continue."
+                       ).arg(QApplication::applicationName()));
+
+    msgBox.setIcon(QMessageBox::Information);
+
+    QPushButton *continueButton = msgBox.addButton("Continue", QMessageBox::AcceptRole);
+    QPushButton *cancelButton = msgBox.addButton("Cancel", QMessageBox::RejectRole);
+    msgBox.setDefaultButton(cancelButton);
+
+    msgBox.exec();
+
+    if (msgBox.clickedButton() != continueButton) {
+        return; // User cancelled
+    }
 
 #endif
-        // Open dialog to select destination folder
-        QString destinationDir = QFileDialog::getExistingDirectory(
-            this,
-            "Select Destination Folder for Symlink",
-            QDir::homePath(),
-            QFileDialog::ShowDirsOnly
-        );
-
-        if (destinationDir.isEmpty()) {
-            return; // User cancelled
-        }
-
-        // Create symlink path
-        QString symlinkPath = QDir(destinationDir).filePath(QApplication::applicationName());
-        // Check if symlink already exists
-        if (QFile::exists(symlinkPath) || QFileInfo(symlinkPath).isSymLink()) {
-            QMessageBox::StandardButton reply = QMessageBox::question(
+    // Open dialog to select destination folder
+    QString destinationDir = QFileDialog::getExistingDirectory(
                 this,
-                "Symlink Exists",
-                QString("A file or symlink already exists at:\n%1\n\nOverwrite?").arg(symlinkPath),
-                QMessageBox::Yes | QMessageBox::No
-            );
+                "Select Destination Folder for Symlink",
+                QDir::homePath(),
+                QFileDialog::ShowDirsOnly
+                );
 
-            if (reply != QMessageBox::Yes) {
-                return;
-            }
+    if (destinationDir.isEmpty()) {
+        return; // User cancelled
+    }
 
-            // Remove existing file/symlink
-            if (!QFile::remove(symlinkPath)) {
-                QMessageBox::warning(this, "Error", "Could not remove existing file/symlink");
-                return;
-            }
-        }
+    // Create symlink path
+    QString symlinkPath = QDir(destinationDir).filePath(QApplication::applicationName());
+    // Check if symlink already exists
+    if (QFile::exists(symlinkPath) || QFileInfo(symlinkPath).isSymLink()) {
+        QMessageBox::StandardButton reply = QMessageBox::question(
+                    this,
+                    "Symlink Exists",
+                    QString("A file or symlink already exists at:\n%1\n\nOverwrite?").arg(symlinkPath),
+                    QMessageBox::Yes | QMessageBox::No
+                    );
 
-        // Create the symlink
-        QString targetPath = Constants::appDirPath;
-
-        if (!QFile::exists(targetPath)) {
-            QMessageBox::warning(this, "Error",
-                QString("Target directory does not exist:\n%1").arg(targetPath));
+        if (reply != QMessageBox::Yes) {
             return;
         }
 
-        if (QFile::link(targetPath, symlinkPath)) {
-            QMessageBox::information(
-                this,
-                "Symlink Created",
-                QString("Symlink created successfully!\n\n"
-                        "Name: %3\n"
-                        "Location: %1\n\n"
-                        "Now you can access Ermis data from:\n%2")
-                .arg(destinationDir)
-                .arg(symlinkPath)
-                .arg(QApplication::applicationName())
-            );
-        } else {
-            QMessageBox::warning(
-                this,
-                "Error",
-                QString("Failed to create symlink.\n\n"
-                        "Destination: %1\n"
-                        "Target: %2\n\n"
-                        "Possible reasons:\n"
-                        "• Insufficient permissions\n"
-                        "• Invalid destination path\n"
-                        "• Filesystem doesn't support symlinks")
-                .arg(symlinkPath)
-                .arg(targetPath)
-            );
+        // Remove existing file/symlink
+        if (!QFile::remove(symlinkPath)) {
+            QMessageBox::warning(this, "Error", "Could not remove existing file/symlink");
+            return;
         }
     }
+
+    // Create the symlink
+    QString targetPath = Constants::appDirPath;
+
+    if (!QFile::exists(targetPath)) {
+        QMessageBox::warning(this, "Error",
+                             QString("Target directory does not exist:\n%1").arg(targetPath));
+        return;
+    }
+
+    if (QFile::link(targetPath, symlinkPath)) {
+        QMessageBox::information(
+                    this,
+                    "Symlink Created",
+                    QString("Symlink created successfully!\n\n"
+                            "Name: %3\n"
+                            "Location: %1\n\n"
+                            "Now you can access Ermis data from:\n%2")
+                    .arg(destinationDir)
+                    .arg(symlinkPath)
+                    .arg(QApplication::applicationName())
+                    );
+    } else {
+        QMessageBox::warning(
+                    this,
+                    "Error",
+                    QString("Failed to create symlink.\n\n"
+                            "Destination: %1\n"
+                            "Target: %2\n\n"
+                            "Possible reasons:\n"
+                            "• Insufficient permissions\n"
+                            "• Invalid destination path\n"
+                            "• Filesystem doesn't support symlinks")
+                    .arg(symlinkPath)
+                    .arg(targetPath)
+                    );
+    }
+}
+
+void MainWindow::openDistSteganography()
+{
+    if(distDialog && distDialog->isHidden()){
+    distDialog->resetForNewOperation();
+    distDialog->show();
+    }
+}
+
+void MainWindow::openPdfSteganography()
+{
+    if(pdfDialog && pdfDialog->isHidden()){
+    pdfDialog->onClearAll();
+    pdfDialog->show();
+    }
+}

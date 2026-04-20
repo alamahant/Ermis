@@ -1,5 +1,77 @@
 # Changelog
 
+## [v1.1.1] - 2026-04-20
+
+### PDF Steganography
+
+**Object Stream Embedding:**
+- Hide data in PDF files using `/ObjStm` object streams
+- FlateDecode compression for efficient storage
+- Incremental update structure for broad viewer compatibility
+- Conservative capacity limit (~50% of carrier PDF size)
+- Support for any file type with original filename preservation
+
+**Packet Format:**
+- FNAM flag preserves original filename for binary files
+- ENCR flag enables automatic encryption detection on extraction
+- Metadata encrypted together with payload when encryption enabled
+
+**PDF Steganography UI (PDFStegDialog):**
+- Dual-tab interface (Hide Data / Extract Data)
+- Text or file input selection with capacity display
+- Real-time capacity calculation and validation
+- Auto-save for binary files with timestamp_ermis_filename format
+- Theme-aware info button with feature documentation
+
+### Distributed Steganography
+
+**Wikipedia Pointer Maps:**
+- Hide messages across Wikipedia articles using word position pointers
+- No single carrier file - message reconstructed from JSON map
+- 10 language support (English, German, French, Spanish, Italian, Portuguese, Dutch, Russian, Japanese, Chinese)
+- Rate-limited API calls with automatic throttling
+
+**Map Format:**
+- JSON wrapper with language and pointers array
+- Optional AES-256-CBC encryption of entire map
+- Base64 encoding for encrypted maps
+- Backward compatible with legacy array format
+
+**Distributed Steganography UI (DistributedStegDialog):**
+- Dual-tab interface (Build Pointer Map / Reconstruct Message)
+- Real-time progress tracking for word mapping
+- Copy-to-clipboard and save-to-file for generated maps
+- Automatic encrypted map detection and decryption
+- Input validation for message format
+
+### UI Enhancements
+
+**Theme-Aware Info Buttons:**
+- Info button (ⓘ) in tab bar corner across all steganography dialogs
+- Dark theme: blue tint with white text
+- Light theme: gray tint with dark text
+- Comprehensive tooltips with feature-specific documentation
+- Warnings for coordination requirements in network steganography
+
+### Bug Fixes
+
+**Dark Theme Persistence:**
+- Fixed theme toggle not saving state correctly on application restart
+- Removed redundant setTheme() call in constructor
+- Single action trigger now correctly updates both UI and settings
+
+**File Dialog Improvements:**
+- Fixed Linux file dialogs hiding binary/system files
+- Removed (*.*) filter pattern that restricted MIME types
+- Consistent use of Constants::appDirPath for starting directories
+
+**PDF Extraction:**
+- Fixed magic bytes detection in stream extraction
+- Resolved double extraction from duplicate signal connection
+- Corrected output path defaulting behavior
+
+---
+
 ## [v1.1.0] - 2026-03-27
 
 ### Network Steganography (ERTP Protocol)

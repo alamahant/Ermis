@@ -101,6 +101,23 @@
 
   <releases>
 
+<release version="1.1.1" date="2026-04-20">
+  <description>
+    <p>PDF and distributed steganography expansion:</p>
+    <ul>
+      <li>PDF steganography with object stream embedding and encryption</li>
+      <li>Distributed steganography via Wikipedia pointer maps</li>
+      <li>Filename preservation for binary file transfers (FNAM flag)</li>
+      <li>Auto-detection of encrypted payloads with passphrase prompt</li>
+      <li>Binary file auto-save with timestamp naming</li>
+      <li>Theme-aware info buttons across all steganography dialogs</li>
+      <li>Fixed dark theme toggle persistence on application restart</li>
+      <li>Fixed Linux file dialogs hiding binary/system files</li>
+      <li>Network steganography coordination warnings added</li>
+    </ul>
+  </description>
+</release>
+
 <release version="1.1.0" date="2026-03-27">
       <description>
         <p>Network and text steganography expansion:</p>
@@ -161,7 +178,10 @@
     <keyword>communication</keyword>
   </keywords>
 
-  <content_rating type="oars-1.1" />
+<content_rating type="oars-1.1">
+  <content_attribute id="social-chat">intense</content_attribute>
+
+</content_rating>
 
   <launchable type="desktop-id">io.github.alamahant.Ermis.desktop</launchable>
 

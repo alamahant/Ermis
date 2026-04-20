@@ -32,4 +32,7 @@ quint16 bindPort = 6363;
 Protocol currentReceiverProtocol = ICMP;
 quint16 bindReceiverPort = 6363;
 
+bool isDarkTheme = false;
+
+
 }
