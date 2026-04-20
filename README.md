@@ -19,6 +19,52 @@ https://flathub.org/en/apps/search?q=alamahant
 - Automatic conversion of non-WAV files to WAV format using FFmpeg
 - Preserves audio quality while hiding data
 
+### 🌐 Network Steganography (ERTP Protocol)
+
+Ermis implements **ERTP (Ermis Reliable Transfer Protocol)**, a steganographic data transfer protocol that embeds secret data within legitimate network packets. Data is hidden inside ICMP Echo/Reply, DNS queries, UDP datagrams, or HTTP/TLS traffic, appearing as normal network activity to observers.
+
+**Supported Protocols:**
+- **ICMP (ping)** - Data hidden in ICMP Echo Request/Reply packets
+- **DNS** - Data embedded in DNS query/response over UDP
+- **UDP** - Direct UDP packet embedding on configurable ports
+- **HTTP/TLS** - Secure HTTPS tunnel steganography
+
+**Reliable Transfer Features:**
+- Session-based communication with 32-bit unique identifiers
+- Sliding window protocol with ACK/NACK acknowledgment system
+- CRC32 checksum validation for data integrity
+- Automatic retransmission with configurable timeouts (1000-2000ms)
+- Transfer progress tracking with cancellation support
+
+**Security & Control:**
+- Optional AES-256-CBC encryption with ENCR flag detection
+- IP filtering with whitelist/blacklist and CIDR notation support
+- Configurable port binding for UDP/DNS/HTTP protocols
+- Passphrase-protected content encryption
+
+**Data Handling:**
+- Text messages with real-time display and clipboard copy
+- File transfers with original filename preservation
+- Received files stored in temp folder with save-as export
+- Automatic text/binary format detection
+- Event log with timestamped status messages
+
+**Critical Coordination Requirements:**
+- Both sender and receiver MUST use the same protocol and port
+- Sender MUST also be listening to receive ACK packets
+- Without proper listening, transmission will fail
+- ICMP requires root/admin privileges; UDP/DNS/HTTP work without special permissions
+
+**UI Features:**
+- Dual-tab interface (Send Data / Receive Data)
+- Target IP history with auto-completion
+- Real-time progress bars for send/receive operations
+- Received files list with save-selected functionality
+- Clear temp folder option for received file cleanup
+- Info button (ⓘ) with comprehensive protocol documentation
+
+For detailed protocol specification, see the [ERTP Protocol Documentation](https://github.com/alamahant/ERTP).
+
 ### 📝 Text Steganography
 - Hide data in plain text using invisible zero-width Unicode characters (U+200B, U+200C)
 - Binary-to-zero-width mapping with 4-byte header for data integrity
@@ -103,3 +149,24 @@ make
 
 # Run
 ./Ermis
+
+---
+
+## License
+
+Copyright © 2026 Alamahant
+
+Ermis is licensed under the GNU General Public License v3.0 (GPL-3.0) - see the [LICENSE](LICENSE) file for details.
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+## Disclaimer
+
+Ermis is designed for legitimate purposes only:
+- Privacy protection for personal information
+- Digital watermarking of creative works
+- Educational use for learning steganography techniques
+- Authorized communication with proper consent
+
+Users are solely responsible for compliance with applicable laws in their jurisdiction. The author assumes no liability for misuse of this software.
+
