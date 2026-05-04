@@ -4,8 +4,13 @@
 
 Ermis is a cross-platform steganography application that allows you to hide and extract secret data within digital media files. Named after the Greek god of messages and communication, Ermis enables covert communication through innocent-looking image and audio files.
 
-Available in Flathub:
-https://flathub.org/en/apps/search?q=alamahant
+## Download Options
+
+| Platform | Where to Get It |
+| :--- | :--- |
+| **Linux** | [Flathub](https://flathub.org/en/apps/io.github.alamahant.Ermis) |
+| **Windows** | [Buy on Gumroad](https://jnanadhakini.gumroad.com/l/qgkvdz) - Pre-compiled binary, no compilation needed |
+
 
 ## Features
 
