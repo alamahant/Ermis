@@ -8,7 +8,7 @@ Ermis is a cross-platform steganography application that allows you to hide and 
 
 | Platform | Where to Get It |
 | :--- | :--- |
-| **Linux** | [Flathub](https://flathub.org/en/apps/io.github.alamahant.Ermis) |
+| **Linux** | [Flathub](https://flathub.org/en/apps/search?q=alamahant) |
 | **Windows** | [Buy on Gumroad](https://jnanadhakini.gumroad.com/l/qgkvdz) - Pre-compiled binary, no compilation needed |
 
 
