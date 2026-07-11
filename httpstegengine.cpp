@@ -2,13 +2,18 @@
 #include "httpstegengine.h"
 #include<QRandomGenerator>
 #include"constants.h"
+#include<QUuid>
 
 HTTPStegEngine::HTTPStegEngine(QObject *parent) : QObject(parent){
 
+            //QString uuid = QUuid::createUuid().toString(QUuid::WithoutBraces);
+            //certPath = Constants::sslPath + "/node-" + uuid + ".crt";
+            //keyPath  = Constants::sslPath + "/node-" + uuid + ".key";
+            //ensureSelfSignedCert(certPath, keyPath, "node-" + uuid);
+            certPath = Constants::sslPath + "/node.crt";
+            keyPath  = Constants::sslPath + "/node.key";
+            ensureSelfSignedCert(certPath, keyPath, "node");
 
-            certPath = Constants::sslPath + "/stegserver.crt";
-            keyPath  = Constants::sslPath + "/stegserver.key";
-            ensureSelfSignedCert(certPath, keyPath, "mystegserver");
 }
 
 HTTPStegEngine::~HTTPStegEngine() {

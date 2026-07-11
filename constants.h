@@ -15,6 +15,7 @@ namespace Constants {
     extern const QString receivedICMPPath;
     extern const QString ermistmpPath;
     extern const QString sslPath;
+    extern const QString elfPath;
 
     extern bool isCameraOn;
 

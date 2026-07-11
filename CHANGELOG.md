@@ -1,5 +1,29 @@
 # Changelog
 
+## [v1.1.2] - 2026-07-11
+
+### ELF Binary Steganography (Linux & BSD)
+
+**Section-Based Embedding:**
+- Hide data in ELF executable files using `.debug_types` section
+- Binary remains **fully functional** after embedding
+- Supports any file type (text, images, binaries, etc.)
+- Bundled `objcopy`/`readelf` tools (no external dependencies)
+
+**Packet Format:**
+- FNAM flag preserves original filename for file extraction
+- ENCR flag enables automatic encryption detection on extraction
+- AES-256-CBC encryption with passphrase support (optional)
+
+**ELF Binary Steganography UI:**
+- Dual-tab interface (Hide Data / Extract Data)
+- Text or file input selection with capacity display
+- Real-time capacity calculation and validation
+- ELF magic byte validation (`0x7F 'E' 'L' 'F'`)
+- Auto-save for binary files with original filename preservation
+
+---
+
 ## [v1.1.1] - 2026-04-20
 
 ### PDF Steganography

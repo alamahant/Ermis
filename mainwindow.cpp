@@ -72,7 +72,7 @@ MainWindow::MainWindow(QWidget *parent)
     pingDialog = new PingDialog(this);
     distDialog = new DistributedStegDialog(this);
     pdfDialog = new PDFStegDialog(this);
-
+    elfDialog = new ELFStegDialog(this);
     statusBar()->showMessage("Ready");
 }
 
@@ -353,6 +353,15 @@ void MainWindow::createMenus()
     QAction *pdfStegAction = toolsMenu->addAction("Pdf Steganography");
     connect(pdfStegAction, &QAction::triggered, this, &MainWindow::openPdfSteganography);
 
+
+    toolsMenu->addSeparator();
+    QAction *elfStegAction = toolsMenu->addAction("ELF Steganography");
+    connect(elfStegAction, &QAction::triggered, this, [this]{
+        if(elfDialog && elfDialog->isHidden()){
+        elfDialog->clearAllBtn();
+        elfDialog->show();
+        }
+    });
 
     toolsMenu->addSeparator();
     m_pingStegAction = toolsMenu->addAction("Network Steganography");

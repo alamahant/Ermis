@@ -42,6 +42,7 @@
 #include<QSplitter>
 #include"distributedstegdialog.h"
 #include"pdfstegdialog.h"
+#include"elfstegdialog.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -254,6 +255,7 @@ private:
     QAction *themeToggleAction;
     DistributedStegDialog* distDialog = nullptr;
     PDFStegDialog *pdfDialog = nullptr;
+    ELFStegDialog *elfDialog = nullptr;
 
 };
 

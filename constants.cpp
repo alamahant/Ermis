@@ -18,6 +18,7 @@ const QString musicPath = QStandardPaths::writableLocation(QStandardPaths::Music
 const QString receivedICMPPath = appDirPath + "/Network";
 const QString ermistmpPath = QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/Ermis";
 const QString sslPath = appDirPath + "/.ssl";
+const QString elfPath = appDirPath + "/elf";
 
 bool isCameraOn = false;
 

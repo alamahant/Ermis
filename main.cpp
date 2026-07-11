@@ -5,6 +5,7 @@
 //#include<QStandardPaths>
 #include<QDir>
 #include"constants.h"
+#include<QStyleFactory>
 
 
 int main(int argc, char *argv[])
@@ -12,7 +13,7 @@ int main(int argc, char *argv[])
 
     QCoreApplication::setApplicationName("Ermis");
     QCoreApplication::setOrganizationName("Alamahant");
-    QCoreApplication::setApplicationVersion("1.1.1");
+    QCoreApplication::setApplicationVersion("1.1.2");
     QDir().mkpath(Constants::appDirPath);
     QDir().mkpath(Constants::imagesPath);
     QDir().mkpath(Constants::fusedImagesPath);
@@ -20,6 +21,7 @@ int main(int argc, char *argv[])
     QDir().mkpath(Constants::receivedICMPPath);
     QDir().mkpath(Constants::ermistmpPath);
     QDir().mkpath(Constants::sslPath);
+    QDir().mkpath(Constants::elfPath);
 
     //QDir().mkpath(Constants::picturesPath);
     //QDir().mkpath(Constants::musicPath);

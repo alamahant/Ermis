@@ -101,6 +101,28 @@
 
   <releases>
 
+<release version="1.1.2" date="2026-07-11">
+  <description>
+    <p>ELF binary and PDF steganography expansion:</p>
+    <ul>
+      <li>ELF binary steganography for Linux and BSD systems</li>
+      <li>Hide data in ELF executables using .debug_types section</li>
+      <li>Binary remains fully functional after embedding</li>
+      <li>Bundled objcopy and readelf tools (no external dependencies)</li>
+      <li>FNAM flag preserves original filename on extraction</li>
+      <li>ENCR flag for automatic encrypted payload detection</li>
+      <li>AES-256-CBC encryption with passphrase support</li>
+      <li>ELF magic byte validation (0x7F E L F)</li>
+
+      <li>PDF steganography with object stream embedding</li>
+      <li>FlateDecode compression for efficient PDF storage</li>
+      <li>PDF capacity calculation and validation</li>
+      <li>Filename preservation for PDF binary transfers</li>
+      <li>Auto-save for extracted files with original name</li>
+    </ul>
+  </description>
+</release>
+
 <release version="1.1.1" date="2026-04-20">
   <description>
     <p>PDF and distributed steganography expansion:</p>

@@ -425,6 +425,7 @@ QString HelpMenuDialog::getShortcutsContent()
     return QString();  // TODO: Implement
 }
 
+
 QString HelpMenuDialog::getAboutContent() {
     return QString(R"(
         <div style="text-align: center; font-family: Arial, sans-serif;">
@@ -456,12 +457,19 @@ QString HelpMenuDialog::getAboutContent() {
                     • <strong>Live Capacity Indicator</strong> — Real-time feedback on available hiding space
                 </p>
 
-                <p>Available for Linux, Windows, and macOS.</p>
-                <p>
-                    Project Repository
-                    <br>
-                    <a href="https://github.com/alamahant/Ermis">https://github.com/alamahant/Ermis</a>
-                </p>
+                <p><strong style="color: #27ae60;">✓ Free for Linux on Flathub</strong></p>
+
+                <p><strong>Windows & macOS Binaries:</strong><br>
+                <a href="https://jnanadhakini.gumroad.com/l/qgkvdz">
+                → https://jnanadhakini.gumroad.com/l/qgkvdz</a></p>
+
+                <p><strong>All Windows/macOS apps:</strong><br>
+                <a href="https://jnanadhakini.gumroad.com">
+                → https://jnanadhakini.gumroad.com</a></p>
+
+                <p><strong>Source Code & Linux Version:</strong><br>
+                <a href="https://github.com/alamahant/Ermis">
+                → https://github.com/alamahant/Ermis</a></p>
             </div>
 
             <hr style="margin: 30px 0; border: 1px solid #bdc3c7;">
@@ -470,7 +478,6 @@ QString HelpMenuDialog::getAboutContent() {
                 <h4 style="color: #2c3e50; margin-bottom: 10px;">🌐 Network Steganography</h4>
                 <p style="text-align: left; margin: 10px 20px;">
                     • <strong>ERTP Protocol</strong> — Ermis Reliable Transfer Protocol for covert network communication<br>
-                    • <strong>ICMP (Ping)</strong> — Hide data within ICMP echo request/reply packets<br>
                     • <strong>UDP</strong> — Covert data transmission over UDP packets with custom payloads<br>
                     • <strong>DNS</strong> — Encoded messages within DNS queries and responses<br>
                     • <strong>HTTP/HTTPS (TLS)</strong> — Steganography within HTTP headers and TLS encrypted tunnels<br>
@@ -482,16 +489,19 @@ QString HelpMenuDialog::getAboutContent() {
                     <strong>ERTP Protocol Repository:</strong><br>
                     <a href="https://github.com/alamahant/ERTP">https://github.com/alamahant/ERTP</a>
                 </p>
+                <p style="margin-top: 10px; font-size: 12px; color: #e67e22;">
+                    ⚠️ ICMP network steganography is available on Linux only (requires raw sockets).
+                </p>
             </div>
 
             <hr style="margin: 30px 0; border: 1px solid #bdc3c7;">
 
             <div style="margin: 20px 0;">
                 <p style="margin: 5px 0; color: #7f8c8d;">
-                    <strong>Copyright © 2026 Dharma</strong>
+                    <strong>Copyright © 2025 Alamahant</strong>
                 </p>
                 <p style="margin: 5px 0; font-size: 12px; color: #95a5a6;">
-                    All rights reserved. This software is provided as-is without warranty.
+                    This software is open source (GPL-3.0). Linux version free on Flathub.
                 </p>
             </div>
 
@@ -1718,6 +1728,20 @@ QString HelpMenuDialog::getChangelogContent()
     return QString(
         "<div style='font-family: Arial, sans-serif; line-height: 1.6; color: #2c3e50;'>"
         "<h2 style='color: #8e44ad; text-align: center; margin-bottom: 25px;'>Ermis Changelog</h2>"
+
+        "<h4 style='color: #27ae60; border-bottom: 2px solid #27ae60; padding-bottom: 5px; margin-top: 25px;'>[v1.1.2] - 2026-07-11</h4>"
+        "<ul style='margin-bottom: 20px;'>"
+        "<li><b>ELF Binary Steganography:</b> Hide data in ELF executables using .debug_types section (Linux and BSD only)</li>"
+        "<li><b>Fully Functional Binaries:</b> Carrier ELF binaries remain fully executable after embedding</li>"
+        "<li><b>Bundled Tools:</b> Ships with objcopy and readelf (no external dependencies required)</li>"
+        "<li><b>Filename Preservation:</b> FNAM flag preserves original filenames across binary file transfers</li>"
+        "<li><b>Auto Encryption Detection:</b> ENCR flag automatically triggers passphrase prompt on extraction</li>"
+        "<li><b>AES-256-CBC Encryption:</b> Optional passphrase-based encryption for hidden payloads</li>"
+        "<li><b>ELF Validation:</b> Magic byte validation ensures only valid ELF binaries are processed</li>"
+        "<li><b>Binary File Handling:</b> Auto-save with original filename preservation for extracted binaries</li>"
+        "<li><b>PDF Steganography:</b> Object stream embedding with FlateDecode compression</li>"
+        "<li><b>PDF Capacity:</b> Real-time capacity calculation and validation</li>"
+        "</ul>"
 
         "<h4 style='color: #27ae60; border-bottom: 2px solid #27ae60; padding-bottom: 5px; margin-top: 25px;'>[v1.1.1] - 2026-04-20</h4>"
         "<ul style='margin-bottom: 20px;'>"

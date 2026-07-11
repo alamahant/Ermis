@@ -26,6 +26,57 @@ find_package(OpenSSL REQUIRED)
 # Find QCA
 #find_package(Qca-qt6 REQUIRED)
 
+
+if(FLATPAK_BUILD)
+    set(BINUTILS_SOURCE_DIR "${CMAKE_SOURCE_DIR}/binutils_src")
+    set(BINUTILS_BUILD_DIR "${CMAKE_BINARY_DIR}/binutils-build")
+
+    if(NOT EXISTS "${BINUTILS_SOURCE_DIR}/configure")
+        message(FATAL_ERROR "binutils source not found: ${BINUTILS_SOURCE_DIR}")
+    endif()
+
+    file(MAKE_DIRECTORY "${BINUTILS_BUILD_DIR}")
+
+    execute_process(
+        COMMAND ${BINUTILS_SOURCE_DIR}/configure
+                --prefix=/app
+                --disable-shared
+                --disable-gold
+                --disable-ld
+                --disable-gas
+                --disable-gprof
+                --disable-nls
+                #--enable-targets=x86_64-pep,aarch64-linux-gnu
+        WORKING_DIRECTORY ${BINUTILS_BUILD_DIR}
+        RESULT_VARIABLE BINUTILS_CONFIGURE_RESULT
+    )
+
+    if(BINUTILS_CONFIGURE_RESULT)
+        message(FATAL_ERROR "Binutils configure failed")
+    endif()
+
+    execute_process(
+        COMMAND make
+        WORKING_DIRECTORY ${BINUTILS_BUILD_DIR}
+        RESULT_VARIABLE BINUTILS_BUILD_RESULT
+    )
+
+    if(BINUTILS_BUILD_RESULT)
+        message(FATAL_ERROR "Binutils build failed")
+    endif()
+
+    execute_process(
+        COMMAND make install
+        WORKING_DIRECTORY ${BINUTILS_BUILD_DIR}
+        RESULT_VARIABLE BINUTILS_INSTALL_RESULT
+    )
+
+    if(BINUTILS_INSTALL_RESULT)
+        message(FATAL_ERROR "Binutils install failed")
+    endif()
+endif()
+
+
 set(PROJECT_SOURCES
         main.cpp
         mainwindow.cpp
@@ -63,6 +114,8 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         distributedstegdialog.cpp distributedstegdialog.h
         pdfstegengine.cpp pdfstegengine.h
         pdfstegdialog.cpp pdfstegdialog.h
+        elfstegengine.cpp elfstegengine.h
+        elfstegdialog.cpp elfstegdialog.h
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET Ermis APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

@@ -148,7 +148,7 @@ void PingDialog::setupUI()
     m_portSpinBox->setRange(1, 65535);
     m_portSpinBox->setValue(Constants::bindPort);
     m_portSpinBox->setEnabled(false);
-    m_portSpinBox->setMaximumWidth(70);
+    m_portSpinBox->setMinimumWidth(120);
     protocolLayout->addWidget(m_portSpinBox);
     protocolLayout->addStretch();
 
@@ -291,7 +291,7 @@ void PingDialog::setupUI()
     m_receiverPortSpinBox->setRange(1, 65535);
     m_receiverPortSpinBox->setValue(Constants::bindPort);
     m_receiverPortSpinBox->setEnabled(false);  // Initially disabled
-    m_receiverPortSpinBox->setMaximumWidth(80);
+    m_receiverPortSpinBox->setMinimumWidth(120);
 
 
     connect(m_receiverPortSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
