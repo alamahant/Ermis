@@ -46,6 +46,7 @@ if(FLATPAK_BUILD)
                 --disable-gas
                 --disable-gprof
                 --disable-nls
+                --without-debuginfod
                 #--enable-targets=x86_64-pep,aarch64-linux-gnu
         WORKING_DIRECTORY ${BINUTILS_BUILD_DIR}
         RESULT_VARIABLE BINUTILS_CONFIGURE_RESULT
