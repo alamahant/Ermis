@@ -617,6 +617,35 @@ QString HelpMenuDialog::getFeaturesContent()
                 <p>ENCR flag triggers automatic passphrase prompt on extraction.</p>
             </div>
 
+<h2 style="color: #c0392b; border-bottom: 2px solid #c0392b; padding-bottom: 5px;">v1.1.3 - 2026-07-19</h2>
+<div style="margin: 20px 0;">
+    <h3 style="color: #c0392b;">UPnP Port Management &amp; NAT Traversal</h3>
+    <p><b>UPnP Port Manager:</b> Automatic port forwarding using miniupnpc library.</p>
+    <p><b>UPnP Port Manager:</b> Open/close TCP/UDP ports on your router without manual configuration.</p>
+    <p><b>UPnP Port Manager:</b> List active UPnP mappings (compatible with most routers).</p>
+    <p><b>UPnP Port Manager:</b> Test router connectivity to verify UPnP availability.</p>
+    <p><b>UPnP Port Manager:</b> Track open ports locally for routers that don't support listing.</p>
+    <p><b>UPnP Port Manager:</b> Auto-close all ports on application exit.</p>
+</div>
+
+<h2 style="color: #c0392b; border-bottom: 2px solid #c0392b; padding-bottom: 5px;">v1.1.2 - 2026-07-11</h2>
+<div style="margin: 20px 0;">
+    <h3 style="color: #c0392b;">ELF Binary Steganography (Linux &amp; BSD)</h3>
+    <p><b>Section-Based Embedding:</b> Hide data in ELF executable files using <code>.debug_types</code> section.</p>
+    <p><b>Section-Based Embedding:</b> Binary remains <b>fully functional</b> after embedding.</p>
+    <p><b>Section-Based Embedding:</b> Supports any file type (text, images, binaries, etc.).</p>
+    <p><b>Section-Based Embedding:</b> Bundled <code>objcopy</code>/<code>readelf</code> tools (no external dependencies).</p>
+    <p><b>Packet Format:</b> FNAM flag preserves original filename for file extraction.</p>
+    <p><b>Packet Format:</b> ENCR flag enables automatic encryption detection on extraction.</p>
+    <p><b>Packet Format:</b> AES-256-CBC encryption with passphrase support (optional).</p>
+    <p><b>ELF Binary Steganography UI:</b> Dual-tab interface (Hide Data / Extract Data).</p>
+    <p><b>ELF Binary Steganography UI:</b> Text or file input selection with capacity display.</p>
+    <p><b>ELF Binary Steganography UI:</b> Real-time capacity calculation and validation.</p>
+    <p><b>ELF Binary Steganography UI:</b> ELF magic byte validation (<code>0x7F 'E' 'L' 'F'</code>).</p>
+    <p><b>ELF Binary Steganography UI:</b> Auto-save for binary files with original filename preservation.</p>
+</div>
+
+
             <h2 style="color: #1abc9c; border-bottom: 2px solid #1abc9c; padding-bottom: 5px;">User Interface</h2>
             <div style="margin: 20px 0;">
                 <h3 style="color: #1abc9c;">Multi-Tab Interface</h3>
@@ -1728,6 +1757,16 @@ QString HelpMenuDialog::getChangelogContent()
     return QString(
         "<div style='font-family: Arial, sans-serif; line-height: 1.6; color: #2c3e50;'>"
         "<h2 style='color: #8e44ad; text-align: center; margin-bottom: 25px;'>Ermis Changelog</h2>"
+
+        "<h4 style='color: #27ae60; border-bottom: 2px solid #27ae60; padding-bottom: 5px; margin-top: 25px;'>[v1.1.3] - 2026-07-19</h4>"
+        "<ul style='margin-bottom: 20px;'>"
+        "<li><b>UPnP Port Manager:</b> Automatic port forwarding using miniupnpc library</li>"
+        "<li><b>UPnP Port Manager:</b> Open/close TCP/UDP ports on your router without manual configuration</li>"
+        "<li><b>UPnP Port Manager:</b> List active UPnP mappings (compatible with most routers)</li>"
+        "<li><b>UPnP Port Manager:</b> Test router connectivity to verify UPnP availability</li>"
+        "<li><b>UPnP Port Manager:</b> Track open ports locally for routers that don't support listing</li>"
+        "<li><b>UPnP Port Manager:</b> Auto-close all ports on application exit</li>"
+        "</ul>"
 
         "<h4 style='color: #27ae60; border-bottom: 2px solid #27ae60; padding-bottom: 5px; margin-top: 25px;'>[v1.1.2] - 2026-07-11</h4>"
         "<ul style='margin-bottom: 20px;'>"

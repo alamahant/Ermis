@@ -19,6 +19,7 @@
 #include<QSpinBox>
 #include"dnsstegengine.h"
 #include"httpstegengine.h"
+#include"upnpmanagerdialog.h"
 
 class PingDialog : public QDialog
 {
@@ -26,6 +27,7 @@ class PingDialog : public QDialog
 
 public:
     explicit PingDialog(QWidget *parent = nullptr);
+    ~PingDialog();
 public slots:
     void onClearAll();
 
@@ -119,6 +121,7 @@ private:
     QPushButton* m_cancelSendBtn;
     bool m_cancelling = false;
     void setupCornerWidget();
+    UPnPManagerDialog* upnDialog = nullptr;
 };
 
 #endif

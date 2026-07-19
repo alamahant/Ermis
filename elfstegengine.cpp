@@ -69,7 +69,6 @@ bool ELFStegEngine::embedDataInELF(const QString &carrierPath, const QString &ou
 
     // If the binary doesn't run, something went wrong
     if (verifyProcess.exitCode() != 0 && !verifyProcess.errorString().contains("No such file")) {
-        qDebug() << "Warning: Binary may be corrupted";
         // Continue anyway - it's likely still functional
     }
 

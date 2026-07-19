@@ -1,5 +1,19 @@
 # Changelog
 
+## [v1.1.3] - 2026-07-19
+
+### UPnP Port Management & NAT Traversal
+
+**UPnP Port Manager:**
+- Automatic port forwarding using miniupnpc library
+- Open/close TCP/UDP ports on your router without manual configuration
+- List active UPnP mappings (compatible with most routers)
+- Test router connectivity to verify UPnP availability
+- Track open ports locally for routers that don't support listing
+- Auto-close all ports on application exit
+
+---
+
 ## [v1.1.2] - 2026-07-11
 
 ### ELF Binary Steganography (Linux & BSD)

@@ -20,6 +20,7 @@ PingDialog::PingDialog(QWidget *parent)
     , udpEngine(new UDPStegEngine(this))
     , dnsEngine(new DNSStegEngine(this))
     , httpEngine(new HTTPStegEngine(this))
+    , upnDialog(new UPnPManagerDialog(this))
 
 {
     setWindowTitle("Network Steganography");
@@ -99,6 +100,16 @@ PingDialog::PingDialog(QWidget *parent)
 
     Constants::currentProtocol = Constants::ICMP;  // Default to ICMP
     Constants::currentReceiverProtocol = Constants::ICMP;  // Default to ICMP
+
+}
+
+PingDialog::~PingDialog()
+{
+    if(upnDialog && !upnDialog->mappings().isEmpty()) {
+        upnDialog->closeAllPorts();
+        delete upnDialog;
+        upnDialog = nullptr;
+    }
 
 }
 
@@ -322,8 +333,14 @@ void PingDialog::setupUI()
         Constants::bindReceiverPort = static_cast<quint16>(value);
     });
 
+    QPushButton* openUpnButton = new QPushButton("Open UpnManager", this);
+    connect(openUpnButton, &QPushButton::clicked, this, [this]{
+        upnDialog->show();
+        upnDialog->raise();
+    });
 
     receiverProtocolLayout->addWidget(m_receiverPortSpinBox);
+    receiverProtocolLayout->addWidget(openUpnButton);
     receiverProtocolLayout->addStretch();
     receiveLayout->addLayout(receiverProtocolLayout);
 

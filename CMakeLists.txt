@@ -9,6 +9,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+#include_directories(/usr/include/miniupnpc)
+
 #flatpak
 option(FLATPAK_BUILD "Build for Flathub/Flatpak" OFF)
 if(FLATPAK_BUILD)
@@ -20,7 +22,16 @@ find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Qt6Concurrent Qt6Multi
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Concurrent Multimedia Concurrent Network)
 
 find_package(OpenSSL REQUIRED)
-# Add the custom QCA installation to the prefix path
+
+if(FLATPAK_BUILD)
+    include_directories(/app/usr/include/miniupnpc)
+    link_directories(/app/usr/lib)
+    set(CMAKE_INSTALL_RPATH "/app/usr/lib")
+    set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
+else()
+    include_directories(/usr/include/miniupnpc)
+endif()
+
 #set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "/home/dharma/ssd/cpp/qca-qt6-custom")
 
 # Find QCA
@@ -75,8 +86,42 @@ if(FLATPAK_BUILD)
     if(BINUTILS_INSTALL_RESULT)
         message(FATAL_ERROR "Binutils install failed")
     endif()
-endif()
 
+    # miniupnpc
+    set(MINIUPNPC_SOURCE_DIR "${CMAKE_SOURCE_DIR}/miniupnpc_src")
+
+    if(EXISTS "${MINIUPNPC_SOURCE_DIR}/Makefile")
+        # Step 1: Build (just make)
+        execute_process(
+            COMMAND make
+            WORKING_DIRECTORY ${MINIUPNPC_SOURCE_DIR}
+            RESULT_VARIABLE MINIUPNPC_MAKE_RESULT
+        )
+
+        if(MINIUPNPC_MAKE_RESULT)
+            message(FATAL_ERROR "miniupnpc build failed")
+        endif()
+
+        # Step 2: Install
+        execute_process(
+            COMMAND make install DESTDIR=${CMAKE_INSTALL_PREFIX}
+            WORKING_DIRECTORY ${MINIUPNPC_SOURCE_DIR}
+            RESULT_VARIABLE MINIUPNPC_INSTALL_RESULT
+        )
+
+        if(MINIUPNPC_INSTALL_RESULT)
+            message(FATAL_ERROR "miniupnpc install failed")
+        endif()
+
+        # Step 3: Set library path
+        #set(MINIUPNPC_LIBRARY "${CMAKE_INSTALL_PREFIX}/lib/libminiupnpc.a" CACHE PATH "Path to miniupnpc library")
+        #set(MINIUPNPC_INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}/include/miniupnpc" CACHE PATH "Path to miniupnpc includes")
+
+        #include_directories(${MINIUPNPC_INCLUDE_DIR})
+        #include_directories(/usr/include/miniupnpc)
+    endif()
+
+endif()
 
 set(PROJECT_SOURCES
         main.cpp
@@ -117,6 +162,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         pdfstegdialog.cpp pdfstegdialog.h
         elfstegengine.cpp elfstegengine.h
         elfstegdialog.cpp elfstegdialog.h
+        upnpmanagerdialog.cpp upnpmanagerdialog.h
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET Ermis APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -139,7 +185,7 @@ endif()
 #target_link_libraries(Ermis PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 #target_link_libraries(Ermis PRIVATE Qt${QT_VERSION_MAJOR}::Widgets qca-qt6 OpenSSL::SSL OpenSSL::Crypto)
 target_link_libraries(Ermis PRIVATE Qt${QT_VERSION_MAJOR}::Widgets OpenSSL::SSL OpenSSL::Crypto Qt6::Concurrent Qt6::Multimedia
-    Qt6::Network Qt6::Concurrent)
+    Qt6::Network Qt6::Concurrent miniupnpc)
 target_link_libraries(Ermis PRIVATE Qt6::Core)
 
 
